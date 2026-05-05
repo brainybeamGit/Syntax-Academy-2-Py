@@ -47,6 +47,14 @@ python manage.py runserver
 
 - 1. Home Page
 - 2. [Add more screenshots]
+
+Images (rendered on GitHub):
+
+![Home Page](screenshot/home.png)
+
+![Dashboard](screenshot/dashboard.png)
+
+![Courses](screenshot/courses.png)
 # Syntax Academy
 
 Syntax Academy is a Django-based online learning platform demo. It includes a public course catalog, student registration and login, lesson streaming, notes downloads, quizzes, certificates, payment-ready enrollment flows, and a separate admin dashboard for managing content and learner activity.
