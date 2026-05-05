@@ -1,0 +1,253 @@
+{% extends "adminpanel/base.html" %}
+{% load static %}
+
+{% block page_title %}Comments & Replies{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'adminpanel/comments.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="comments-page">
+    <div class="dashboard-header comments-dashboard-header">
+        <div class="dashboard-header-inner">
+            <div>
+                <div class="dashboard-title"><h1>Comments & Replies</h1></div>
+                <div class="dashboard-subtitle">
+                    <div class="dashboard-dot"></div>
+                    Follow learner conversations, monitor unresolved threads, and moderate replies from one shared discussion board
+                </div>
+            </div>
+
+            <div class="dashboard-meta">
+                <div class="dashboard-date">
+                    <i class="fa-regular fa-calendar"></i>
+                    <span id="liveDate"></span>
+                </div>
+                <div class="dashboard-admin-panel">
+                    <div class="dashboard-admin-copy">
+                        <span class="dashboard-admin-name">{% firstof request.user.get_full_name request.user.username "Admin" %}</span>
+                    </div>
+                    <a href="{% url 'logout' %}" class="dashboard-logout">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                        Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% comment %} <section class="discussion-intel-grid">
+        <div class="discussion-panel">
+            <div class="discussion-panel-label">Most Discussed Courses</div>
+            <h3>Where learner conversations are most active.</h3>
+            <div class="discussion-course-list">
+                {% for course in top_courses %}
+                <div class="discussion-course-item">
+                    <div>
+                        <div class="discussion-course-name">{{ course.name }}</div>
+                        <div class="discussion-course-meta">{{ course.comment_total }} comment{{ course.comment_total|pluralize }} and {{ course.reply_total }} repl{{ course.reply_total|pluralize:"y,ies" }}</div>
+                    </div>
+                    <div class="discussion-course-score">{{ course.comment_total }}</div>
+                </div>
+                {% empty %}
+                <div class="discussion-empty-mini">No course discussions yet.</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="discussion-panel">
+            <div class="discussion-panel-label">Moderation Guide</div>
+            <h3>Keep the discussion area fast and clean.</h3>
+            <div class="discussion-guide-list">
+                <div class="discussion-guide-item">
+                    <i class="fa-solid fa-bolt"></i>
+                    <span>Prioritize open threads first so student questions do not sit unanswered.</span>
+                </div>
+                <div class="discussion-guide-item">
+                    <i class="fa-solid fa-shield-heart"></i>
+                    <span>Remove duplicate or harmful replies while keeping useful learner context visible.</span>
+                </div>
+                <div class="discussion-guide-item">
+                    <i class="fa-solid fa-book-open-reader"></i>
+                    <span>Watch for repeated questions on the same course to identify missing lesson clarity.</span>
+                </div>
+            </div>
+        </div>
+    </section> {% endcomment %}
+
+    <section class="discussion-board-panel">
+        <div class="discussion-board-header">
+            <div>
+                <div class="discussion-panel-label">Discussion Board</div>
+                <h3>Comments and reply threads</h3>
+                <p>Search by learner, course, or message text and filter down to unresolved threads when needed.</p>
+            </div>
+
+            <label class="discussion-search" for="commentSearch">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="commentSearch" placeholder="Search conversations...">
+            </label>
+        </div>
+
+        <div class="discussion-filter-bar">
+            <div class="discussion-filter-group">
+                <button type="button" class="discussion-filter-chip active" data-thread-filter="all">
+                    <span>All Threads</span>
+                    <strong>{{ total_comments }}</strong>
+                </button>
+                <button type="button" class="discussion-filter-chip" data-thread-filter="open">
+                    <span>Open</span>
+                    <strong>{{ open_threads }}</strong>
+                </button>
+                <button type="button" class="discussion-filter-chip" data-thread-filter="replied">
+                    <span>Replied</span>
+                    <strong>{{ replied_threads }}</strong>
+                </button>
+            </div>
+            <div class="discussion-visible-count">
+                Showing <strong id="threadVisibleCount">{{ total_comments }}</strong> thread{{ total_comments|pluralize }}
+            </div>
+        </div>
+
+        {% if comments %}
+        <div class="discussion-thread-list">
+            {% for comment in comments %}
+            <article class="discussion-thread-card" data-thread-card data-thread-state="{% if comment.reply_count %}replied{% else %}open{% endif %}">
+                <div class="discussion-thread-top">
+                    <div class="discussion-thread-user">
+                        <div class="discussion-avatar">{{ comment.user.name|slice:":1"|upper }}</div>
+                        <div>
+                            <div class="discussion-user-name">{{ comment.user.name }}</div>
+                            <div class="discussion-course-tag">{{ comment.course.name }}</div>
+                        </div>
+                    </div>
+
+                    <div class="discussion-thread-actions">
+                        <span class="discussion-thread-state {% if comment.reply_count %}state-replied{% else %}state-open{% endif %}">
+                            {% if comment.reply_count %}Replied{% else %}Open{% endif %}
+                        </span>
+                        <a href="?action=delete&type=comment&pk={{ comment.id }}"
+                           class="discussion-delete-link"
+                           onclick="return confirmCommentDelete('{{ comment.user.name|escapejs }}', '{{ comment.course.name|escapejs }}')">
+                            <i class="fa-solid fa-trash"></i>
+                            Delete
+                        </a>
+                    </div>
+                </div>
+
+                <div class="discussion-comment-copy">{{ comment.text }}</div>
+
+                <div class="discussion-thread-meta">
+                    <span><i class="fa-regular fa-clock"></i> {{ comment.created_at|date:"d M Y, h:i A" }}</span>
+                    <span><i class="fa-solid fa-reply"></i> {{ comment.reply_count }} repl{{ comment.reply_count|pluralize:"y,ies" }}</span>
+                </div>
+
+                <div class="discussion-replies-wrap">
+                    {% for reply in comment.replies.all %}
+                    <div class="discussion-reply-card">
+                        <div class="discussion-reply-top">
+                            <div class="discussion-reply-user">
+                                <div class="discussion-reply-avatar">{{ reply.user.name|slice:":1"|upper }}</div>
+                                <div>
+                                    <div class="discussion-reply-name">{{ reply.user.name }}</div>
+                                    <div class="discussion-reply-time">{{ reply.created_at|date:"d M Y, h:i A" }}</div>
+                                </div>
+                            </div>
+
+                            <a href="?action=delete&type=reply&pk={{ reply.id }}"
+                               class="discussion-delete-link reply-delete-link"
+                               onclick="return confirmReplyDelete('{{ reply.user.name|escapejs }}', '{{ comment.user.name|escapejs }}')">
+                                <i class="fa-solid fa-trash"></i>
+                                Delete
+                            </a>
+                        </div>
+                        <div class="discussion-reply-copy">{{ reply.text }}</div>
+                    </div>
+                    {% empty %}
+                    <div class="discussion-no-replies">
+                        No replies yet. This thread is still waiting for a response.
+                    </div>
+                    {% endfor %}
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="discussion-empty-state">
+            <i class="fa-solid fa-comments"></i>
+            <h4>No conversations yet</h4>
+            <p>Once students start commenting on courses, their discussion threads will appear here.</p>
+        </div>
+        {% endif %}
+    </section>
+</div>
+
+<script>
+const commentsDateNode = document.getElementById('liveDate');
+if (commentsDateNode) {
+    commentsDateNode.textContent = new Date().toLocaleDateString('en-IN', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+}
+
+const commentSearchInput = document.getElementById('commentSearch');
+const threadFilterButtons = document.querySelectorAll('[data-thread-filter]');
+const threadVisibleCount = document.getElementById('threadVisibleCount');
+let activeThreadFilter = 'all';
+
+function applyThreadFilters() {
+    const query = commentSearchInput ? commentSearchInput.value.toLowerCase() : '';
+    let visibleCount = 0;
+
+    document.querySelectorAll('[data-thread-card]').forEach((card) => {
+        const text = card.textContent.toLowerCase();
+        const threadState = card.dataset.threadState;
+        const matchesSearch = text.includes(query);
+        const matchesFilter = activeThreadFilter === 'all' || threadState === activeThreadFilter;
+        const isVisible = matchesSearch && matchesFilter;
+
+        card.style.display = isVisible ? '' : 'none';
+        if (isVisible) {
+            visibleCount += 1;
+        }
+    });
+
+    if (threadVisibleCount) {
+        threadVisibleCount.textContent = visibleCount;
+    }
+}
+
+if (commentSearchInput) {
+    commentSearchInput.addEventListener('input', applyThreadFilters);
+}
+
+threadFilterButtons.forEach((button) => {
+    button.addEventListener('click', function () {
+        activeThreadFilter = this.dataset.threadFilter;
+        threadFilterButtons.forEach((chip) => chip.classList.remove('active'));
+        this.classList.add('active');
+        applyThreadFilters();
+    });
+});
+
+function confirmCommentDelete(userName, courseName) {
+    return window.confirm(
+        `Delete the comment from "${userName}" on "${courseName}"?\n\nThis will also remove every reply inside that thread.`
+    );
+}
+
+function confirmReplyDelete(replyUser, commentUser) {
+    return window.confirm(
+        `Delete the reply from "${replyUser}" in ${commentUser}'s thread?\n\nThis reply will be permanently removed from the admin panel.`
+    );
+}
+
+applyThreadFilters();
+</script>
+
+{% endblock %}

@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}My Enrolls | Syntax Academy{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/profile.css' %}">
+
+<style>
+body{
+    background-color:#0b0f1a;
+    background-image: radial-gradient(circle at top, #1a1f3c 0%, #0b0f1a 68%);
+    background-repeat:no-repeat;
+    background-size:100% 540px;
+}
+
+.enroll-page-hero{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    gap:24px;
+    padding-bottom:28px;
+    border-bottom:1px solid var(--border);
+}
+
+.enroll-page-copy h1{
+    margin:0 0 10px;
+    font-size:34px;
+    font-weight:700;
+    color:#6fcfe8;
+}
+
+.enroll-page-copy p{
+    margin:0;
+    max-width:650px;
+    color:var(--muted);
+    font-size:15px;
+    line-height:1.7;
+}
+
+.enroll-count-badge{
+    min-width:120px;
+    padding:16px 18px;
+    border-radius:20px;
+    text-align:center;
+    background:var(--card);
+    border:1px solid var(--border);
+}
+
+.enroll-count-badge strong{
+    display:block;
+    font-size:28px;
+    color:#fff;
+}
+
+.enroll-count-badge span{
+    font-size:12px;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    color:var(--muted);
+}
+
+.enroll-meta{
+    display:flex;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:12px;
+    color:var(--muted);
+    font-size:12px;
+}
+
+.empty-state-card{
+    max-width:560px;
+    padding:28px;
+    border-radius:22px;
+    background:var(--card);
+    border:1px solid var(--border);
+    box-shadow:0 18px 40px rgba(0,0,0,.24);
+}
+
+.empty-state-card p{
+    margin:0 0 16px;
+    color:var(--muted);
+    line-height:1.7;
+}
+
+@media (max-width: 768px){
+    .enroll-page-hero{
+        flex-direction:column;
+        align-items:flex-start;
+    }
+
+    .enroll-page-copy h1{
+        font-size:28px;
+    }
+
+    .enroll-count-badge{
+        min-width:auto;
+    }
+}
+</style>
+
+<div class="profile-wrapper">
+    <div class="enroll-page-hero">
+        <div class="enroll-page-copy">
+            <h1>My Enrolled Courses</h1>
+            <p>
+                Welcome back, {{ user.name }}. Here are all the courses you have enrolled in so you can continue learning anytime.
+            </p>
+        </div>
+
+        <div class="enroll-count-badge">
+            <strong>{{ enrolled_courses|length }}</strong>
+            <span>Total Courses</span>
+        </div>
+    </div>
+
+    <div class="section">
+        {% if enrolled_courses %}
+        <div class="enrolled-grid">
+            {% for enroll in enrolled_courses %}
+            <div class="course-card">
+                <span class="level-badge">
+                    {{ enroll.course.get_level_display }}
+                </span>
+
+                {% if enroll.course.thumbnail %}
+                <img src="{{ enroll.course.thumbnail.url }}" class="course-img" alt="{{ enroll.course.name }}">
+                {% endif %}
+
+                <div class="course-body">
+                    <div class="course-title">{{ enroll.course.name }}</div>
+
+                    <div class="enroll-meta">
+                        <span>Enrolled on {{ enroll.enrolled_at|date:"d M Y" }}</span>
+                        <span>Rs. {{ enroll.course.price }}</span>
+                    </div>
+
+                    <div class="course-desc">
+                        {{ enroll.course.description|truncatewords:18 }}
+                    </div>
+
+                    <a href="{% url 'courses' enroll.course.id %}" class="start-btn">
+                        Continue Learning
+                    </a>
+
+                    {% if enroll.payment %}
+                    <a href="{% url 'payment_receipt' enroll.payment.id %}" class="download-receipt-btn">
+                        <span class="receipt-btn-icon">
+                            <i class="bi bi-receipt"></i>
+                        </span>
+                        <span class="receipt-btn-text">Download Receipt</span>
+                        <span class="receipt-btn-arrow">
+                            <i class="bi bi-arrow-down-short"></i>
+                        </span>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state-card">
+            <h3>No enrolled courses yet</h3>
+            <p>
+                You have not enrolled in any course yet. Explore the course list and start your learning journey.
+            </p>
+            <a href="{% url 'all_courses' %}" class="start-btn">Browse Courses</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

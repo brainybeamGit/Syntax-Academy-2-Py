@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+{% block content %}
+{% load static %}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+<link rel="stylesheet" href="{% static 'css/profile.css' %}">
+
+<div class="profile-wrapper">
+
+    <!-- ================= HEADER ================= -->
+    <div class="profile-top">
+        <div class="profile-avatar-wrapper">
+            <div class="profile-avatar">
+                {{ user.name|slice:":1"|upper }}
+            </div>
+        </div>
+
+        <div class="profile-info">
+
+            <div class="name-row">
+                <h2 class="profile-name">{{ user.name }}</h2>
+
+                <div class="exp-tag {{ user.level }}">
+                    <i class="bi bi-stars"></i>
+                    {{ user.get_level_display }}
+                </div>
+            </div>
+
+            <div class="profile-email">{{ user.email }}</div>
+            <a href="{% url 'logout' %}" class="logout-chip">Logout</a>
+
+        </div>
+    </div>
+
+
+    <!-- ================= LEARNING OVERVIEW ================= -->
+    <div class="section">
+        <h3>Learning Overview</h3>
+
+        <div class="stats-grid stats-grid--three">
+
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="bi bi-journal-check"></i>
+                </div>
+                <div>
+                    <div class="stat-number">{{ total_attempts }}</div>
+                    <div class="stat-label">Quizzes Attempted</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="bi bi-bar-chart-line"></i>
+                </div>
+                <div>
+                    <div class="stat-number">{{ avg_score }}%</div>
+                    <div class="stat-label">Average Score</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="bi bi-trophy"></i>
+                </div>
+                <div>
+                    <div class="stat-number">{{ max_score }}%</div>
+                    <div class="stat-label">Best Score</div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- ================= ACTIVITY ================= -->
+    <div class="section">
+        <h3>Community Activity</h3>
+
+        <div class="stats-grid stats-grid--two">
+
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="bi bi-chat-dots"></i>
+                </div>
+                <div>
+                    <div class="stat-number">{{ comments }}</div>
+                    <div class="stat-label">Comments Posted</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="bi bi-reply"></i>
+                </div>
+                <div>
+                    <div class="stat-number">{{ replies }}</div>
+                    <div class="stat-label">Replies Given</div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- ================= ENROLLED COURSES ================= -->
+    <div class="section">
+        <h3>My Enrolled Courses</h3>
+
+        <div class="enrolled-grid">
+
+            {% for enroll in enrolled_courses %}
+
+            <div class="course-card">
+
+                <span class="level-badge">
+                    {{ enroll.course.get_level_display }}
+                </span>
+
+                <img src="{{ enroll.course.thumbnail.url }}" class="course-img">
+
+                <div class="course-body">
+
+                    <div class="course-title">
+                        {{ enroll.course.name }}
+                    </div>
+
+                    <div class="course-desc">
+                        {{ enroll.course.description|truncatewords:14 }}
+                    </div>
+
+                    <a href="{% url 'courses' enroll.course.id %}" class="start-btn">
+                        Continue Learning
+                    </a>
+
+                    {% if enroll.payment %}
+                    <a href="{% url 'payment_receipt' enroll.payment.id %}" class="download-receipt-btn">
+                        <span class="receipt-btn-icon">
+                            <i class="bi bi-receipt"></i>
+                        </span>
+                        <span class="receipt-btn-text">
+                            Download Receipt
+                        </span>
+                        <span class="receipt-btn-arrow">
+                            <i class="bi bi-arrow-down-short"></i>
+                        </span>
+                    </a>
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+            {% empty %}
+
+            <p class="empty-state">
+                You haven’t enrolled in any courses yet.
+            </p>
+
+            {% endfor %}
+
+        </div>
+    </div>
+
+
+    <!-- ================= ACCOUNT SETTINGS ================= -->
+    <div class="section">
+        <h3>Account Settings</h3>
+
+        <div class="settings-grid">
+
+            <!-- EDIT PROFILE -->
+            <div class="settings-card">
+                <h5>Edit Profile</h5>
+
+                <form method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="form_type" value="edit_profile">
+
+                    <label>Full Name</label>
+                    <input type="text" name="name" value="{{ user.name }}" required>
+
+                    <label>Mobile Number</label>
+                    <input type="text" name="mobile" value="{{ user.mobile }}" inputmode="numeric" pattern="[0-9]*" maxlength="10" data-numeric-only required>
+
+                    <button type="submit" class="save-btn">Save Changes</button>
+                </form>
+            </div>
+
+
+            <!-- CHANGE PASSWORD -->
+            <div class="settings-card">
+                <h5>Change Password</h5>
+
+                <form method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="form_type" value="change_password">
+
+                    <label>Current Password</label>
+                    <input type="password" name="current_password" required>
+
+                    <label>New Password</label>
+                    <input type="password" name="new_password" required>
+
+                    <button type="submit" class="save-btn">Update Password</button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+
+<script>
+document.querySelectorAll('.fav-btn').forEach(button => {
+
+    button.addEventListener('click', function () {
+
+        const courseId = this.dataset.id;
+
+        fetch(`/toggle_favourite/${courseId}/`)
+            .then(response => response.json())
+            .then(data => {
+
+                if (data.status === "removed") {
+                    this.closest('.course-card').remove();
+                }
+
+                if (data.status === "login_required") {
+                    window.location.href = "/login/";
+                }
+
+            });
+
+    });
+
+});
+</script>
+
+{% endblock content %}

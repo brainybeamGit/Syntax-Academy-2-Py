@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Courses | Syntax Academy{% endblock %}
+
+{% block content %}
+{% load static %}
+<style>
+body{
+    background-color:#0b0f1a;
+    background-image: radial-gradient(circle at top, #1a1f3c 0%, #0b0f1a 68%);
+    background-repeat:no-repeat;
+    background-size:100% 540px;
+}
+</style>
+
+<section class="contact-hero text-center courses-page-hero">
+    <div class="container">
+        <h1 class="hero-title">Explore <span class="gradient-text">All Courses</span></h1>
+        <p class="hero-sub">
+            Browse every course available at Syntax Academy and pick the path that fits your goals.
+        </p>
+    </div>
+</section>
+
+<section class="py-5" id="courses">
+    <div class="container">
+
+        <div class="row g-4">
+        {% for i in cor %}
+            <div class="col-lg-3 col-md-6">
+                <div class="course-card-pro">
+                    <div class="course-thumb">
+                        <img src="{{ i.thumbnail.url }}" alt="{{ i.name }}">
+                        <span class="level {{ i.level }}">{{ i.level|title }}</span>
+                    </div>
+
+                    <div class="course-body">
+                        <h5 class="course-title">{{ i.name }}</h5>
+
+                        <p class="course-desc">
+                            {{ i.description|truncatechars:90 }}
+                        </p>
+
+                        <div class="course-stats">
+                            <span><i class="bi bi-collection-play"></i> {{ i.lessons_count }} Lessons</span>
+                            <span><i class="bi bi-clock"></i> {{ i.duration_weeks }} Weeks</span>
+                        </div>
+
+                        <div class="course-proof">
+                            <span class="rating">
+                                <i class="bi bi-star-fill"></i> {{ i.avg_rating }}
+                            </span>
+                            <span class="students">
+                                <i class="bi bi-people"></i> {{ i.students_count }} Students
+                            </span>
+                        </div>
+
+                        <a href="{% url 'courses' i.id %}" class="btn course-btn w-100 mt-3">
+                            Start Learning
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12">
+                <p class="text-center opacity-75">No courses available right now.</p>
+            </div>
+        {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

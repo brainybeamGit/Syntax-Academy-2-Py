@@ -1,0 +1,162 @@
+{% extends "adminpanel/base.html" %}
+{% load static %}
+
+{% block page_title %}Quiz Questions{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'adminpanel/quiz_questions.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="quiz-questions-page">
+    <div class="dashboard-header quiz-questions-dashboard-header">
+        <div class="dashboard-header-inner">
+            <div>
+                <a href="{% url 'quiz_manage' %}" class="quiz-back-link">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    Back to Quizzes
+                </a>
+                <div class="dashboard-title"><h1>{{ quiz.title }}</h1></div>
+                <div class="dashboard-subtitle">
+                    <div class="dashboard-dot"></div>
+                    {{ quiz.course.name }} assessment with {{ total_questions }} question{{ total_questions|pluralize }} and {{ attempt_total }} attempt{{ attempt_total|pluralize }}.
+                </div>
+            </div>
+
+            <div class="quiz-summary-chips">
+                <div class="quiz-summary-chip">
+                    <span>Questions</span>
+                    <strong>{{ total_questions }}</strong>
+                </div>
+                <div class="quiz-summary-chip">
+                    <span>Attempts</span>
+                    <strong>{{ attempt_total }}</strong>
+                </div>
+                <div class="quiz-summary-chip">
+                    <span>Avg Score</span>
+                    <strong>{{ average_percentage }}%</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if edit_mode %}
+    <section class="question-editor-section">
+        <article class="question-form-card">
+            <div class="panel-label">Question Editor</div>
+
+            <div class="question-form-header">
+                <div class="question-form-icon">
+                    <i class="fa-solid fa-pen"></i>
+                </div>
+
+                <div>
+                    <h3>Edit Question JSON</h3>
+                    <p>Update the selected question using the same JSON question object format used by your API.</p>
+                </div>
+            </div>
+
+            <form method="POST" class="question-form">
+                {% csrf_token %}
+
+                {% if form_error %}
+                <div class="question-form-alert">{{ form_error }}</div>
+                {% endif %}
+
+                <div class="question-form-group">
+                    <label for="jsonPayload">JSON Payload</label>
+                    <textarea id="jsonPayload" name="json_payload" rows="16" spellcheck="false" required>{{ payload_text }}</textarea>
+                </div>
+
+                <div class="question-btn-row">
+                    <button type="submit" class="question-btn-primary">
+                        <i class="fa-solid fa-floppy-disk"></i>
+                        Update Question
+                    </button>
+                    <a href="{% url 'quiz_questions_manage' quiz.id %}" class="question-btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </article>
+    </section>
+    {% else %}
+    <section class="question-editor-section">
+        <article class="question-info-card">
+            <div class="panel-label">Question Actions</div>
+            <h3>Edit or delete existing questions</h3>
+            <p>New question uploads now happen from the Quiz Management page. Click edit on any question below to open its JSON in the editor.</p>
+        </article>
+    </section>
+    {% endif %}
+
+    <section class="question-list-panel">
+        <div class="question-list-header">
+            <div>
+                <div class="panel-label">Question List</div>
+                <h3>Questions in this quiz</h3>
+                <p>Click edit to load any question back into the editor, or delete it from the quiz.</p>
+            </div>
+        </div>
+
+        {% if questions %}
+        <div class="question-card-grid">
+            {% for item in questions %}
+            <article class="question-card">
+                <div class="question-card-top">
+                    <div class="question-order-badge">Q{{ item.item_number }}</div>
+
+                    <div class="actions-cell">
+                        <a href="?action=edit&pk={{ item.id }}" class="action edit" title="Edit question">
+                            <i class="fa-solid fa-pen"></i>
+                        </a>
+                        <a href="?action=delete&pk={{ item.id }}"
+                           onclick="return confirmDelete('{{ item.question_text|truncatechars:60|escapejs }}')"
+                           class="action delete"
+                           title="Delete question">
+                            <i class="fa-solid fa-trash"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="question-card-title">{{ item.question_text }}</div>
+
+                <div class="question-option-list">
+                    <div class="question-option {% if item.correct_option == 1 %}correct{% endif %}">
+                        <span class="question-option-label">1</span>
+                        <span>{{ item.option1 }}</span>
+                    </div>
+                    <div class="question-option {% if item.correct_option == 2 %}correct{% endif %}">
+                        <span class="question-option-label">2</span>
+                        <span>{{ item.option2 }}</span>
+                    </div>
+                    <div class="question-option {% if item.correct_option == 3 %}correct{% endif %}">
+                        <span class="question-option-label">3</span>
+                        <span>{{ item.option3 }}</span>
+                    </div>
+                    <div class="question-option {% if item.correct_option == 4 %}correct{% endif %}">
+                        <span class="question-option-label">4</span>
+                        <span>{{ item.option4 }}</span>
+                    </div>
+                </div>
+
+                <div class="question-answer-chip">
+                    Correct Answer: {{ item.correct_option_value }}
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-questions-state">
+            <i class="fa-solid fa-circle-question"></i>
+            <h4>No questions yet</h4>
+            <p>Add the first question pack from the Quiz Management page, then come back here to edit or delete individual questions.</p>
+        </div>
+        {% endif %}
+    </section>
+</div>
+
+<script>
+function confirmDelete(questionText) {
+    return confirm(`Delete this question?\n\n"${questionText}"`);
+}
+</script>
+{% endblock %}

@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% block content %}
+
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/about.css' %}">
+{% endblock %}
+
+<!-- HERO -->
+<section class="about-hero">
+    <h1 class="hero-title">
+    We Don’t Teach Syntax.<br>
+    We Teach Thinking.
+    </h1>
+
+    <p class="hero-sub">
+    Learn logic, problem solving, and development skills that companies actually hire for.
+    </p>
+</section>
+
+<!-- STATS -->
+<section class="stats">
+    <div class="about-container stats-grid">
+        <div class="stat-box">
+            <h2>35K+</h2>
+            <p>Students Learning</p>
+        </div>
+        <div class="stat-box">
+            <h2>50+</h2>
+            <p>Lessons</p>
+        </div>
+        <div class="stat-box">
+            <h2>100+</h2>
+            <p>Practice Questions</p>
+        </div>
+        <div class="stat-box">
+            <h2>Real</h2>
+            <p>Project Based</p>
+        </div>
+    </div>
+</section>
+
+<!-- OUR STORY -->
+<section class="about-section">
+    <div class="about-container two-col">
+        <div>
+            <h2>Our Story</h2>
+            <p>
+                Most students quit programming because tutorials are confusing and unstructured.
+                Syntax Academy was created to fix that problem.
+            </p>
+            <p>
+                We designed a learning system where each topic builds naturally on the previous one —
+                exactly how real understanding works.
+            </p>
+        </div>
+
+        <div class="about-card highlight">
+            <h3>Our Goal</h3>
+            <p>
+                Make coding simple enough for beginners but powerful enough for real careers.
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- LEARNING PATH -->
+<section class="about-section alt">
+    <div class="about-container">
+        <h2 class="center">Your Learning Journey</h2>
+
+        <div class="timeline">
+            <div class="step">
+                <span>1</span>
+                <h3>Basics</h3>
+                <p>Understand logic & syntax</p>
+            </div>
+
+            <div class="step">
+                <span>2</span>
+                <h3>Practice</h3>
+                <p>Quizzes & problems</p>
+            </div>
+
+            <div class="step">
+                <span>3</span>
+                <h3>Projects</h3>
+                <p>Build real applications</p>
+            </div>
+
+            <div class="step">
+                <span>4</span>
+                <h3>Confidence</h3>
+                <p>Interview ready</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FEATURES -->
+<section class="about-section">
+    <div class="about-container">
+        <h2 class="center">Platform Features</h2>
+
+        <div class="features">
+            <div class="feature-box">
+                <h3>Structured Courses</h3>
+                <p>No random tutorials — step-by-step roadmap</p>
+            </div>
+
+            <div class="feature-box">
+                <h3>Built-in Quiz System</h3>
+                <p>Track your understanding instantly</p>
+            </div>
+
+            <div class="feature-box">
+                <h3>Project Based Learning</h3>
+                <p>Build real apps while learning</p>
+            </div>
+
+            <div class="feature-box">
+                <h3>Clean Learning UI</h3>
+                <p>No distractions, only focus</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CREATOR -->
+<section class="about-section alt">
+    <div class="about-container creator">
+        <div class="creator-card">
+            <h2>Created For Learners</h2>
+            <p>
+                Syntax Academy is designed for students who want clarity instead of confusion.
+                Every lesson is optimized to reduce overwhelm and increase understanding.
+            </p>
+        </div>
+    </div>
+</section>
+
+{% endblock content %}

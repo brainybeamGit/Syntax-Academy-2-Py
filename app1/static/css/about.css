@@ -1,0 +1,170 @@
+/* ==================================================
+   SYNTAX ACADEMY ABOUT PAGE
+   Premium layout — Home color palette
+================================================== */
+
+/* FONTS */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+:root{
+    --card:#12182b;
+    --primary:#6cf2c2;
+    --secondary:#6aa8ff;
+    --text:#eaeaea;
+    --muted:#8a94a7;
+    --grad:linear-gradient(90deg,#6cf2c2,#6aa8ff);
+}
+
+/* BASE */
+body{
+    margin:0;
+    font-family:'Poppins', sans-serif;
+    color:var(--text);
+    line-height:1.65;
+    letter-spacing:.2px;
+    background:#0b0f1a;
+}
+
+.about-container{
+    width:90%;
+    max-width:1150px;
+    margin:auto;
+}
+
+/* HERO */
+.about-hero{
+    padding-top:150px;   /* bigger gap from navbar */
+    padding-bottom:140px;
+    text-align:center;
+    background:radial-gradient(circle at top,#1a1f3c,#0b0f1a);
+}
+
+
+
+/* GLOW CARD SYSTEM */
+.stat-box,
+.about-card,
+.step,
+.feature-box,
+.creator-card{
+    background:var(--card);
+    border-radius:18px;
+    padding:26px;
+    border:1px solid rgba(255,255,255,0.08);
+    position:relative;
+    transition:.35s ease;
+}
+
+.stat-box:hover,
+.about-card:hover,
+.step:hover,
+.feature-box:hover,
+.creator-card:hover{
+    transform:translateY(-8px);
+    box-shadow:0 20px 40px rgba(0,0,0,.4);
+}
+
+/* STATS */
+.stats{padding:40px 0 80px}
+
+.stats-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+    gap:28px;
+}
+
+.stat-box h2{
+    font-family:'Plus Jakarta Sans',sans-serif;
+    font-size:40px;
+    font-weight:800;
+    margin:0;
+    background:var(--grad);
+    -webkit-background-clip:text;
+    background-clip:text;
+    -webkit-text-fill-color:transparent;
+}
+
+/* SECTIONS */
+.about-section{padding:90px 0}
+
+.alt{
+    background:#0e1424;
+}
+
+.two-col{
+    display:grid;
+    grid-template-columns:1.2fr 1fr;
+    gap:60px;
+    align-items:center;
+}
+
+/* TIMELINE */
+.timeline{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:30px;
+    margin-top:45px;
+}
+
+.step span{
+    width:44px;
+    height:44px;
+    margin:auto auto 12px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:bold;
+    background:var(--grad);
+    color:#0b0f1a;
+}
+
+/* FEATURES */
+.center{text-align:center;margin-bottom:45px}
+
+.features{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+    gap:28px;
+}
+
+/* CREATOR */
+.creator-card{
+    padding:50px;
+    text-align:center;
+}
+
+/* CTA */
+.cta{text-align:center;padding:100px 0}
+
+.cta h2{
+    font-size:36px;
+}
+
+.cta-btn{
+    display:inline-block;
+    margin-top:30px;
+    padding:16px 36px;
+    border-radius:50px;
+    text-decoration:none;
+    font-weight:600;
+    letter-spacing:.3px;
+    color:#0b0f1a;
+    background:var(--grad);
+    transition:.3s;
+    box-shadow:0 4px 12px rgba(108,242,194,.25);
+}
+
+.cta-btn:hover{
+    transform:translateY(-2px);
+    box-shadow:
+        0 8px 22px rgba(108,242,194,.35),
+        0 0 0 1px rgba(108,242,194,.25);
+}
+
+/* FOOTER */
+.about-footer{
+    text-align:center;
+    padding:30px;
+    color:var(--muted);
+    border-top:1px solid rgba(255,255,255,.08);
+}

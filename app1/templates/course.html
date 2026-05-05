@@ -1,0 +1,440 @@
+{% extends "base.html" %}
+{% block content %}
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>{{ cor.name }} | Syntax Academy</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Bootstrap -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<!-- Bootstrap Icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+<!-- Google Font -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<!-- Custom CSS -->
+<link rel="stylesheet" href="{% static 'css/course.css' %}">
+</head>
+
+<body>
+
+<!-- HEADER -->
+<div class="course-header">
+
+    <h1 class="course-title-main">
+        {{ cor.name }}
+    </h1>
+
+    <div class="course-meta-center">
+
+        <span>
+            <i class="bi bi-star-fill"></i>
+            {{ avg_rating }}
+            <small>({{ review_count }} review{{ review_count|pluralize }})</small>
+        </span>
+
+        <span>
+            <i class="bi bi-people-fill"></i>
+            {{ total_students }} student{{ total_students|pluralize }}
+        </span>
+
+    </div>
+
+    <button id="enrollBtn"
+        class="btn {% if is_enrolled %}enrolled-btn{% else %}enroll-btn{% endif %} mt-3"
+        {% if is_enrolled %}disabled{% endif %}>
+
+        {% if is_enrolled %}
+        ✔ Enrolled
+        {% else %}
+        Enroll Now
+        {% endif %}
+
+    </button>
+
+</div>
+
+<div class="container-premium">
+    {% if messages %}
+        <div class="mb-4">
+            {% for message in messages %}
+                <div class="alert alert-warning" role="alert">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="main-grid">
+
+        <!-- LEFT: VIDEO -->
+        <div class="video-card">
+
+            <!-- Placeholder -->
+            <div id="videoPlaceholder" class="video-placeholder">
+                <i class="bi bi-play-circle"></i>
+                <h4>No lesson selected</h4>
+                <p>Select a lesson from the right to start learning</p>
+            </div>
+
+            <div id="videoPlayerShell" class="video-player-shell" style="display:none;">
+                <video id="mainVideo" controls preload="metadata" playsinline></video>
+
+                <button type="button" id="backward10Btn" class="video-overlay-btn video-overlay-btn-left" aria-label="Back 10 seconds">
+                    <i class="bi bi-arrow-counterclockwise"></i>
+                    <span>10</span>
+                </button>
+                <button type="button" id="forward10Btn" class="video-overlay-btn video-overlay-btn-right" aria-label="Forward 10 seconds">
+                    <span>10</span>
+                    <i class="bi bi-arrow-clockwise"></i>
+                </button>
+            </div>
+
+            <!-- Video title -->
+            <h4 id="videoTitle" class="video-title mt-3" style="display:none;"></h4>
+        </div>
+
+        
+        <!-- RIGHT: SIDEBAR -->
+        <div>
+
+            <!-- LESSONS -->
+            <div class="side-card">
+                <div class="dropdown-header" onclick="toggleDropdown('lessonList')">
+                    <h5 class="section-heading">
+                        <i class="bi bi-play-btn-fill"></i>
+                        <span>Lessons</span>
+                    </h5>
+                    <span>▼</span>
+                </div>
+
+                <div class="dropdown-list" id="lessonList">
+                    {% if less %}
+                        {% for i in less %}
+                            <div class="dropdown-item lesson-item
+                                {% if not is_enrolled %} locked {% endif %}"
+                                {% if i.video %}
+                                    data-video="{% url 'stream_lesson_video' i.id %}"
+                                    data-lesson-id="{{ i.id }}"
+                                    data-title="{{ i.name }}"
+                                    {% if is_enrolled %}
+                                        data-complete-url="{% url 'mark_lesson_complete' i.id %}"
+                                    {% endif %}
+                                {% endif %}
+                                data-enrolled="{{ is_enrolled }}">
+                                <div class="lesson-item-content">
+                                    {% if not is_enrolled %}
+                                        <i class="bi bi-lock-fill lock-icon"></i>
+                                    {% endif %}
+                                    <span class="lesson-item-title">{{ i.name }}</span>
+                                </div>
+                                {% if is_enrolled %}
+                                    <span class="lesson-complete-icon" aria-hidden="true">
+                                        <i class="bi bi-check-circle-fill"></i>
+                                    </span>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    {% elif all_lessons_completed %}
+                        <div class="dropdown-item empty-text">
+                            No lessons available
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- NOTES -->
+            <div class="side-card">
+                <div class="dropdown-header" onclick="toggleDropdown('notesList')">
+                    <h5 class="section-heading">
+                        <i class="bi bi-file-earmark-text-fill"></i>
+                        <span>Notes</span>
+                    </h5>
+                    <span>▼</span>
+                </div>
+
+                <div class="dropdown-list" id="notesList">
+
+                    {% if nott %}
+
+                        {% for i in nott %}
+
+                            <div class="dropdown-item note-row
+                                {% if not is_enrolled %} locked {% endif %}"
+                                data-enrolled="{{ is_enrolled }}">
+
+                                <div class="note-left">
+
+                                    {% if not is_enrolled %}
+                                        <i class="bi bi-lock-fill lock-icon"></i>
+                                    {% else %}
+                                        <i class="bi bi-file-earmark-text"></i>
+                                    {% endif %}
+
+                                    <span class="note-name">
+                                        {{ i.name }}
+                                    </span>
+
+                                </div>
+
+                                {% if is_enrolled %}
+                                    <a href="{% url 'download_note' i.id %}"
+                                    class="note-download-icon"
+                                    title="Download Note">
+                                    <i class="bi bi-download"></i>
+                                    </a>
+                                {% endif %}
+
+                            </div>
+
+                        {% endfor %}
+
+                    {% else %}
+                        <div class="dropdown-item empty-text">
+                            No notes available
+                        </div>
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+           <!-- QUIZ -->
+           <div class="side-card">
+
+                <div class="dropdown-header quiz-item
+                    {% if not is_enrolled or not all_lessons_completed %} locked {% endif %}"
+                    id="quizAccessTrigger"
+                    data-enrolled="{{ is_enrolled }}"
+                    data-quiz-ready="{{ all_lessons_completed }}"
+                    data-remaining-lessons="{{ remaining_lessons_count }}"
+                    data-quiz-url="{% url 'quiz_page' cor.id %}">
+
+                    <h5 class="section-heading">
+                        <i class="bi bi-patch-question-fill"></i>
+                        {% if not is_enrolled or not all_lessons_completed %}
+                            <i class="bi bi-lock-fill lock-icon"></i>
+                        {% endif %}
+                        <span>Course Quiz</span>
+                    </h5>
+
+                    {% if not is_enrolled %}
+                        <span class="quiz-action-label">Quiz Locked</span>
+                    {% elif all_lessons_completed %}
+                        <span class="quiz-action-label">Attempt Quiz</span>
+                    {% else %}
+                        <span class="quiz-action-label">{{ remaining_lessons_count }} left</span>
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+            {% if certificate_available %}
+                <div class="side-card certificate-card">
+                    <div class="certificate-card-copy">
+                        <div class="certificate-badge">
+                            <i class="bi bi-patch-check-fill"></i>
+                        </div>
+                        <div>
+                            <h5>Download Certificate</h5>
+                            <p>
+                                You scored {{ certificate_percentage }}% in the quiz.
+                                Your certificate is ready to download.
+                            </p>
+                        </div>
+                    </div>
+
+                    <a href="{% url 'download_certificate' cor.id %}" class="certificate-download-btn">
+                        <i class="bi bi-download"></i>
+                        Download Certificate
+                    </a>
+                </div>
+            {% endif %}
+
+        </div>
+    </div>
+
+    <!-- COMMENTS -->
+    <div class="side-card mt-4 comment-box">
+        <h5 class="section-heading">
+            <i class="bi bi-chat-dots-fill"></i>
+            <span>Student Comments</span>
+        </h5>
+
+        {% if 'login' in request.session %}
+            <textarea
+                id="commentText"
+                rows="3"
+                placeholder="Write your comment..."
+            ></textarea>
+
+            <button class="btn btn-primary mt-2" onclick="postComment()">
+                Post
+            </button>
+        {% else %}
+            <p class="text-muted mt-2">
+                🔒 Please <a href="{% url 'login' %}">login</a> to post a comment.
+            </p>
+        {% endif %}
+
+        <div id="commentList" class="mt-4">
+
+            {% for c in comms %}
+                <div class="comment-item">
+
+                    <!-- COMMENT HEADER -->
+                    <div class="comment-header">
+                        <strong>
+                            {% if 'login' in request.session and c.user.email == request.session.login %}
+                                You
+                            {% else %}
+                                {{ c.user.name }}
+                            {% endif %}
+                        </strong>
+                        <small>
+                            {{ c.created_at|date:"d M Y, h:i A" }}
+                        </small>
+                    </div>
+
+                    <!-- COMMENT TEXT -->
+                    <p class="comment-text">
+                        {{ c.text }}
+                    </p>
+
+                    <!-- ACTIONS -->
+                    <div class="comment-actions">
+
+                        {% if 'login' in request.session %}
+                            <span class="reply-btn" onclick="toggleReplyBox({{ c.id }})">
+                                Reply
+                            </span>
+                        {% endif %}
+
+                        {% if c.replies.count > 0 %}
+                            <span class="see-replies" onclick="toggleReplies({{ c.id }})">
+                                See replies ({{ c.replies.count }})
+                            </span>
+                        {% endif %}
+
+                    </div>
+
+                    <!-- REPLY INPUT -->
+                    {% if 'login' in request.session %}
+                        <div class="reply-box" id="replyBox{{ c.id }}" style="display:none;">
+                            <input
+                                type="text"
+                                id="replyText{{ c.id }}"
+                                placeholder="Write a reply..."
+                            >
+                            <button onclick="replyComment({{ c.id }})">Post</button>
+                        </div>
+                    {% endif %}
+
+                    <!-- REPLIES -->
+                    <div class="replies-container" id="replies{{ c.id }}" style="display:none;">
+                        {% for r in c.replies.all %}
+                            <div class="reply-item">
+                                <strong>
+                                    {% if 'login' in request.session and r.user.email == request.session.login %}
+                                        You
+                                    {% else %}
+                                        {{ r.user.name }}
+                                    {% endif %}
+                                </strong>
+                                <span class="reply-text">{{ r.text }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                </div>
+            {% empty %}
+                <p class="text-muted">No comments yet</p>
+            {% endfor %}
+
+        </div>
+    </div>
+
+
+    <!-- REVIEW SECTION -->
+    <div class="review-minimal text-center mt-5">
+
+    <h5 class="section-heading review-heading mb-4">
+        <i class="bi bi-star-fill"></i>
+        <span>Rate This Course</span>
+    </h5>
+
+    {% if not is_enrolled %}
+
+        <p style="color: rgba(255,255,255,0.6); font-size:14px;">
+            🔒 Enroll in this course to share your experience and rating.
+        </p>
+
+    {% else %}
+
+        <form id="reviewForm">
+
+            {% csrf_token %}
+            <input type="hidden" id="selectedStarsInput" name="stars"
+                   value="{{ user_review.stars|default:0 }}">
+
+            <div class="star-rating-minimal mb-4">
+                {% for i in "12345" %}
+                    <i class="bi bi-star-fill star
+                    {% if user_review and user_review.stars >= forloop.counter %} active {% endif %}"
+                       data-value="{{ forloop.counter }}"></i>
+                {% endfor %}
+            </div>
+
+            <div class="review-input-wrapper">
+                <textarea name="comment"
+                          rows="2"
+                          placeholder="Share your experience...">{{ user_review.comment|default:'' }}</textarea>
+                <div class="input-line"></div>
+            </div>
+
+            <button type="submit" class="submit-review-btn mt-4">
+                {% if user_review %}
+                    Update Review
+                {% else %}
+                    Submit Review
+                {% endif %}
+            </button>
+
+        </form>
+
+    {% endif %}
+
+</div>
+
+<!-- JS -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<script>
+    const COURSE_ID = "{{ cor.id }}";
+    const PLAYER_STORAGE_KEY = "course-progress-{{ request.session.login|default:'guest'|escapejs }}-{{ cor.id }}";
+    const ADD_COMMENT_URL = "{% url 'add_comm' %}";
+    const COMPLETED_LESSON_IDS = {{ completed_lesson_ids|default:'[]' }};
+</script>
+<script>
+    const ENROLL_URL = "{% url 'enroll_course' cor.id %}";
+</script>
+<script>
+    const SUBMIT_REVIEW_URL = "{% url 'submit_review' cor.id %}";
+</script>
+<script src="{% static 'js/course.js' %}"></script>
+
+
+
+</body>
+</html>
+
+
+{% endblock content %}

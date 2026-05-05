@@ -1,0 +1,386 @@
+{% extends "base.html" %}
+{% block content %}
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Syntax Academy | Learn to Code</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    </head>
+    <body>
+
+        <!-- Navbar -->
+
+        <!-- Hero -->
+        <section class="hero d-flex align-items-center text-center">
+            <div class="container">
+                <div class="hero-content">
+                    <h1 class="hero-title">
+                        Build Skills. Write Code.<br>
+                        <span>Shape Your Future.</span>
+                    </h1>
+                    <p class="hero-sub">
+                        Learn programming, web development, and problem-solving from industry-ready mentors.
+                    </p>
+                    <form action="{% url 'search' %}" method="GET" class="hero-search mt-5">
+                        <div class="search-wrapper">
+                            <span class="search-icon">
+                                <i class="bi bi-search"></i>
+                            </span>
+                            <input type="text" name="q" placeholder="Search Python, Django, C, Java..." required>
+                            <button type="submit">
+                                Explore <i class="bi bi-arrow-right-short"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <section class="homepage-courses py-5" id="top-courses">
+            <div class="container">
+                <div class="homepage-courses-head text-center">
+                    <span class="homepage-courses-kicker">Top Courses</span>
+                    <h2 class="section-title">Start With Our Best Picks</h2>
+                </div>
+
+                <div class="row g-4">
+                    {% for i in top_courses %}
+                        <div class="col-lg-3 col-md-6">
+                            <div class="course-card-pro">
+                                <div class="course-thumb">
+                                    <img src="{{ i.thumbnail.url }}" alt="{{ i.name }}">
+                                    <span class="level {{ i.level }}">{{ i.level|title }}</span>
+                                </div>
+
+                                <div class="course-body">
+                                    <h5 class="course-title">{{ i.name }}</h5>
+
+                                    <p class="course-desc">
+                                        {{ i.description|truncatechars:90 }}
+                                    </p>
+
+                                    <div class="course-stats">
+                                        <span><i class="bi bi-collection-play"></i> {{ i.lessons_count }} Lessons</span>
+                                        <span><i class="bi bi-clock"></i> {{ i.duration_weeks }} Weeks</span>
+                                    </div>
+
+                                    <div class="course-proof">
+                                        <span class="rating">
+                                            <i class="bi bi-star-fill"></i> {{ i.avg_rating }}
+                                        </span>
+                                        <span class="students">
+                                            <i class="bi bi-people"></i> {{ i.students_count }} Students
+                                        </span>
+                                    </div>
+
+                                    <a href="{% url 'courses' i.id %}" class="btn course-btn w-100 mt-3">
+                                        Start Learning
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="col-12">
+                            <p class="text-center opacity-75">No courses available right now.</p>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <div class="text-center mt-5">
+                    <a href="{% url 'all_courses' %}" class="homepage-courses-cta">
+                        <span>View All Courses</span>
+                        <span class="homepage-courses-cta-icon">
+                            <i class="bi bi-arrow-right"></i>
+                        </span>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <section class="how-it-works">
+            <div class="container">
+                <div class="how-it-works-shell">
+                    <div class="how-it-works-head text-center">
+                        <span class="homepage-courses-kicker how-it-works-kicker">How It Works</span>
+                        <h2 class="section-title">From First Click to Certificate</h2>
+                    </div>
+
+                    <div class="row g-4 how-it-works-row">
+                        <div class="col-lg-4 col-md-6">
+                            <div class="how-step-card">
+                                <span class="how-step-number">1</span>
+                                <div class="how-step-icon">
+                                    <i class="bi bi-grid-1x2-fill"></i>
+                                </div>
+                                <h3>Pick Course</h3>
+                                <p>Choose the course that matches your level, goals, and learning path.</p>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4 col-md-6">
+                            <div class="how-step-card">
+                                <span class="how-step-number">2</span>
+                                <div class="how-step-icon">
+                                    <i class="bi bi-play-btn-fill"></i>
+                                </div>
+                                <h3>Watch Lessons</h3>
+                                <p>Learn with structured lessons, hands-on topics, and focused weekly progress.</p>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4 col-md-12">
+                            <div class="how-step-card">
+                                <span class="how-step-number">3</span>
+                                <div class="how-step-icon">
+                                    <i class="bi bi-patch-check-fill"></i>
+                                </div>
+                                <h3>Get Certified</h3>
+                                <p>Complete the course journey and unlock a certificate that proves your skills.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="reviews-section">
+            <div class="container">
+                <div class="reviews-head text-center">
+                    <span class="homepage-courses-kicker reviews-kicker">Learner Reviews</span>
+                    <h2 class="section-title">What Our Students Say</h2>
+                    <p class="reviews-copy">
+                        Real feedback from learners building skills with Syntax Academy.
+                    </p>
+                </div>
+
+                {% if recent_reviews %}
+                    <div class="reviews-nav" aria-label="Review navigation">
+                        <button type="button" class="reviews-nav-btn" data-direction="prev" aria-label="Scroll reviews left">
+                            <i class="bi bi-arrow-left"></i>
+                        </button>
+                        <button type="button" class="reviews-nav-btn" data-direction="next" aria-label="Scroll reviews right">
+                            <i class="bi bi-arrow-right"></i>
+                        </button>
+                    </div>
+
+                    <div class="reviews-marquee" id="reviewsMarquee">
+                        <div class="reviews-marquee-track">
+                            <div class="reviews-marquee-group" aria-hidden="true">
+                                {% for review in recent_reviews %}
+                                    <article class="review-card">
+                                        <div class="review-card-top">
+                                            <div class="review-avatar">
+                                                {{ review.user.name|first|upper }}
+                                            </div>
+                                            <div class="review-meta">
+                                                <h3>{{ review.user.name }}</h3>
+                                                <p>{{ review.course.name }}</p>
+                                            </div>
+                                        </div>
+
+                                        <div class="review-stars" aria-label="{{ review.stars }} out of 5 stars">
+                                            {% for _ in "12345" %}
+                                                <i class="bi bi-star-fill{% if forloop.counter > review.stars %} review-star-muted{% endif %}"></i>
+                                            {% endfor %}
+                                        </div>
+
+                                        <blockquote>
+                                            {% if review.comment %}
+                                                "{{ review.comment }}"
+                                            {% else %}
+                                                "Great learning experience and a course worth recommending."
+                                            {% endif %}
+                                        </blockquote>
+                                    </article>
+                                {% endfor %}
+                            </div>
+
+                            <div class="reviews-marquee-group" data-review-group="primary">
+                                {% for review in recent_reviews %}
+                                    <article class="review-card">
+                                        <div class="review-card-top">
+                                            <div class="review-avatar">
+                                                {{ review.user.name|first|upper }}
+                                            </div>
+                                            <div class="review-meta">
+                                                <h3>{{ review.user.name }}</h3>
+                                                <p>{{ review.course.name }}</p>
+                                            </div>
+                                        </div>
+
+                                        <div class="review-stars" aria-label="{{ review.stars }} out of 5 stars">
+                                            {% for _ in "12345" %}
+                                                <i class="bi bi-star-fill{% if forloop.counter > review.stars %} review-star-muted{% endif %}"></i>
+                                            {% endfor %}
+                                        </div>
+
+                                        <blockquote>
+                                            {% if review.comment %}
+                                                "{{ review.comment }}"
+                                            {% else %}
+                                                "Great learning experience and a course worth recommending."
+                                            {% endif %}
+                                        </blockquote>
+                                    </article>
+                                {% endfor %}
+                            </div>
+
+                            <div class="reviews-marquee-group" aria-hidden="true">
+                                {% for review in recent_reviews %}
+                                    <article class="review-card">
+                                        <div class="review-card-top">
+                                            <div class="review-avatar">
+                                                {{ review.user.name|first|upper }}
+                                            </div>
+                                            <div class="review-meta">
+                                                <h3>{{ review.user.name }}</h3>
+                                                <p>{{ review.course.name }}</p>
+                                            </div>
+                                        </div>
+
+                                        <div class="review-stars" aria-label="{{ review.stars }} out of 5 stars">
+                                            {% for _ in "12345" %}
+                                                <i class="bi bi-star-fill{% if forloop.counter > review.stars %} review-star-muted{% endif %}"></i>
+                                            {% endfor %}
+                                        </div>
+
+                                        <blockquote>
+                                            {% if review.comment %}
+                                                "{{ review.comment }}"
+                                            {% else %}
+                                                "Great learning experience and a course worth recommending."
+                                            {% endif %}
+                                        </blockquote>
+                                    </article>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <p class="text-center opacity-75">Reviews will appear here once students start sharing feedback.</p>
+                {% endif %}
+            </div>
+        </section>
+
+        <!-- CTA -->
+        {% if not login %}
+        <section class="py-5 text-center">
+            <div class="container">
+                <h2 class="fw-bold">Ready to Start Your Coding Journey?</h2>
+                <p class="opacity-75 mt-3">Join thousands of students at Syntax Academy.</p>
+                <a href="{% url 'register' %}" class="btn btn-lg login-btn mt-3">Enroll Now</a>
+            </div>
+        </section>
+        {% endif %}
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const reviewsMarquee = document.getElementById('reviewsMarquee');
+
+                if (!reviewsMarquee) {
+                    return;
+                }
+
+                const reviewTrack = reviewsMarquee.querySelector('.reviews-marquee-track');
+                const primaryGroup = reviewsMarquee.querySelector('[data-review-group="primary"]');
+                const prevButton = document.querySelector('.reviews-nav-btn[data-direction="prev"]');
+                const nextButton = document.querySelector('.reviews-nav-btn[data-direction="next"]');
+
+                if (!reviewTrack || !primaryGroup || !prevButton || !nextButton) {
+                    return;
+                }
+
+                let scrollTimer = null;
+
+                const getScrollAmount = function () {
+                    const firstCard = reviewTrack.querySelector('.review-card');
+
+                    if (!firstCard) {
+                        return reviewsMarquee.clientWidth * 0.85;
+                    }
+
+                    const trackStyles = window.getComputedStyle(reviewTrack);
+                    const gap = parseFloat(trackStyles.gap || trackStyles.columnGap || 0);
+
+                    return firstCard.getBoundingClientRect().width + gap;
+                };
+
+                const getGroupWidth = function () {
+                    return primaryGroup.getBoundingClientRect().width;
+                };
+
+                const getCycleWidth = function () {
+                    const trackStyles = window.getComputedStyle(reviewTrack);
+                    const trackGap = parseFloat(trackStyles.gap || trackStyles.columnGap || 0);
+                    return getGroupWidth() + trackGap;
+                };
+
+                const jumpTo = function (left) {
+                    const previousBehavior = reviewsMarquee.style.scrollBehavior;
+                    reviewsMarquee.style.scrollBehavior = 'auto';
+                    reviewsMarquee.scrollLeft = left;
+                    reviewsMarquee.style.scrollBehavior = previousBehavior;
+                };
+
+                const normalizeScrollPosition = function () {
+                    const cycleWidth = getCycleWidth();
+
+                    if (cycleWidth <= 0) {
+                        return;
+                    }
+
+                    if (reviewsMarquee.scrollLeft < cycleWidth) {
+                        jumpTo(reviewsMarquee.scrollLeft + cycleWidth);
+                    } else if (reviewsMarquee.scrollLeft >= cycleWidth * 2) {
+                        jumpTo(reviewsMarquee.scrollLeft - cycleWidth);
+                    }
+                };
+
+                const updateNavButtons = function () {
+                    const hasOverflow = getGroupWidth() > reviewsMarquee.clientWidth + 4;
+                    prevButton.disabled = !hasOverflow;
+                    nextButton.disabled = !hasOverflow;
+                };
+
+                [prevButton, nextButton].forEach(function (button) {
+                    button.addEventListener('click', function () {
+                        const direction = button.dataset.direction === 'prev' ? -1 : 1;
+                        const scrollAmount = getScrollAmount();
+
+                        reviewsMarquee.scrollBy({
+                            left: direction * scrollAmount,
+                            behavior: 'smooth'
+                        });
+                    });
+                });
+
+                reviewsMarquee.addEventListener('scroll', function () {
+                    window.clearTimeout(scrollTimer);
+                    scrollTimer = window.setTimeout(normalizeScrollPosition, 140);
+                }, { passive: true });
+
+                window.addEventListener('resize', function () {
+                    jumpTo(getCycleWidth());
+                    updateNavButtons();
+                });
+
+                requestAnimationFrame(function () {
+                    jumpTo(getCycleWidth());
+                    updateNavButtons();
+                });
+
+                updateNavButtons();
+            });
+        </script>
+    </body>
+</html>
+{% endblock content %}

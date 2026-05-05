@@ -1,0 +1,308 @@
+{% extends "adminpanel/base.html" %}
+{% load static %}
+
+{% block content %}
+
+<!-- Header -->
+<div class="dashboard-header">
+  <div class="dashboard-header-inner">
+    <div>
+      <div class="dashboard-title"><h1>Dashboard</h1></div>
+      <div class="dashboard-subtitle">
+        <div class="dashboard-dot"></div>
+        Monitor platform activity | Syntax Academy
+      </div>
+    </div>
+    <div class="dashboard-meta">
+      <div class="dashboard-date">
+        <i class="fa-regular fa-calendar"></i>
+        <span id="liveDate"></span>
+      </div>
+      <div class="dashboard-admin-panel">
+        <div class="dashboard-admin-copy">
+          <span class="dashboard-admin-name">{% firstof request.user.get_full_name request.user.username "Admin" %}</span>
+        </div>
+        <a href="{% url 'logout' %}" class="dashboard-logout">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i>
+          Logout
+        </a>
+      </div>
+    </div>
+  </div>
+  <div class="dashboard-divider"></div>
+</div>
+
+<!-- Stats Section -->
+<div class="top-row">
+  <div class="card card-stat">
+    <div class="stat-head">
+      <div class="stat-icon-wrap ic-teal"><i class="fa-solid fa-users"></i></div>
+      <span class="stat-change {% if student_growth > 0 %}up{% elif student_growth < 0 %}down{% else %}flat{% endif %}">
+        <i class="fa-solid {% if student_growth > 0 %}fa-chevron-up{% elif student_growth < 0 %}fa-chevron-down{% else %}fa-minus{% endif %}"></i>
+        {% if student_growth > 0 %}+{% endif %}{{ student_growth|floatformat:-1 }}%
+      </span>
+    </div>
+    <div class="stat-value"><span class="count-up" data-target="{{ total_students }}">0</span></div>
+    <div class="stat-label">Total Students</div>
+    <div class="stat-spark"><canvas id="s1"></canvas></div>
+  </div>
+
+  <div class="card card-stat">
+    <div class="stat-head">
+      <div class="stat-icon-wrap ic-blue"><i class="fa-solid fa-graduation-cap"></i></div>
+      <span class="stat-change {% if enrollment_growth > 0 %}up{% elif enrollment_growth < 0 %}down{% else %}flat{% endif %}">
+        <i class="fa-solid {% if enrollment_growth > 0 %}fa-chevron-up{% elif enrollment_growth < 0 %}fa-chevron-down{% else %}fa-minus{% endif %}"></i>
+        {% if enrollment_growth > 0 %}+{% endif %}{{ enrollment_growth|floatformat:-1 }}%
+      </span>
+    </div>
+    <div class="stat-value"><span class="count-up" data-target="{{ total_enrollments }}">0</span></div>
+    <div class="stat-label">Total Enrollments</div>
+    <div class="stat-spark"><canvas id="s2"></canvas></div>
+  </div>
+
+  <div class="card card-stat">
+    <div class="stat-head">
+      <div class="stat-icon-wrap ic-orange"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+      <span class="stat-change {% if revenue_growth > 0 %}up{% elif revenue_growth < 0 %}down{% else %}flat{% endif %}">
+        <i class="fa-solid {% if revenue_growth > 0 %}fa-chevron-up{% elif revenue_growth < 0 %}fa-chevron-down{% else %}fa-minus{% endif %}"></i>
+        {% if revenue_growth > 0 %}+{% endif %}{{ revenue_growth|floatformat:-1 }}%
+      </span>
+    </div>
+    <div class="stat-value">&#8377;<span class="count-up" data-target="{{ total_revenue }}">0</span></div>
+    <div class="stat-label">Total Revenue</div>
+    <div class="stat-spark"><canvas id="s3"></canvas></div>
+  </div>
+
+  <div class="card card-stat">
+    <div class="stat-head">
+      <div class="stat-icon-wrap ic-green"><i class="fa-solid fa-book-open"></i></div>
+      <span class="stat-change {% if course_growth > 0 %}up{% elif course_growth < 0 %}down{% else %}flat{% endif %}">
+        <i class="fa-solid {% if course_growth > 0 %}fa-chevron-up{% elif course_growth < 0 %}fa-chevron-down{% else %}fa-minus{% endif %}"></i>
+        {% if course_growth > 0 %}+{% endif %}{{ course_growth|floatformat:-1 }}%
+      </span>
+    </div>
+    <div class="stat-value"><span class="count-up" data-target="{{ total_courses }}">0</span></div>
+    <div class="stat-label">Total Courses</div>
+    <div class="stat-spark"><canvas id="s4"></canvas></div>
+  </div>
+</div>
+
+<!-- Bottom Row -->
+<div class="bottom-row">
+  <div class="card card-donut">
+    <div class="card-title">Platform Overview </div>
+    <div class="donut-wrap">
+      <canvas id="donutChart"></canvas>
+      <div class="donut-center">
+        <div class="donut-pct">{{ total_enrollments }}</div>
+        <div class="donut-sub">Overview</div>
+      </div>
+    </div>
+    <div class="donut-legend">
+      <div class="legend-item">
+        <div class="legend-left"><div class="legend-dot" style="background:#0f9f8a;"></div>Enrollments</div>
+        <div class="legend-val">{{ total_enrollments }}</div>
+      </div>
+      <div class="legend-item">
+        <div class="legend-left"><div class="legend-dot" style="background:#6aa8ff;"></div>Reviews</div>
+        <div class="legend-val">{{ total_reviews }}</div>
+      </div>
+      <div class="legend-item">
+        <div class="legend-left"><div class="legend-dot" style="background:#fbbf24;"></div>Revenue</div>
+        <div class="legend-val">&#8377;{{ total_revenue }}</div>
+      </div>
+      <div class="legend-item">
+        <div class="legend-left"><div class="legend-dot" style="background:#34d399;"></div>Courses</div>
+        <div class="legend-val">{{ total_courses }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card card-chart">
+    <div class="card-title">Students &amp; Enrollments</div>
+    <div class="chart-wrap"><canvas id="barChart"></canvas></div>
+    <div class="chart-legend">
+      <div class="chart-legend-item"><div class="legend-sq" style="background:#0f9f8a;"></div>Students</div>
+      <div class="chart-legend-item"><div class="legend-sq" style="background:#6aa8ff;"></div>Enrollments</div>
+    </div>
+  </div>
+</div>
+
+<div class="activity-row">
+  <div class="card activity-card activity-card-enrollments">
+    <div class="card-title">
+      <span>Recent Enrollments</span>
+    </div>
+    <div class="activity-list activity-list-enrollments">
+      {% for enrollment in recent_enrollments %}
+        <div class="activity-item activity-item-enrollment">
+          <div class="activity-avatar enroll-avatar">
+            {{ enrollment.user.name|slice:":1"|upper }}
+          </div>
+          <div class="activity-copy">
+            <div class="activity-name">{{ enrollment.user.name }}</div>
+            <div class="activity-meta">{{ enrollment.course.name }}</div>
+          </div>
+          <div class="activity-side">
+            <div class="activity-chip enroll-chip">Enrolled</div>
+            <div class="activity-time">{{ enrollment.enrolled_at|date:"d M Y" }}</div>
+          </div>
+        </div>
+      {% empty %}
+        <div class="activity-empty">No enrollments yet.</div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="card activity-card">
+    <div class="card-title">
+      <span>Recent Reviews</span>
+    </div>
+    <div class="activity-list">
+      {% for review in recent_reviews %}
+        <div class="activity-item review-item">
+          <div class="activity-avatar review-avatar">
+            {{ review.user.name|slice:":1"|upper }}
+          </div>
+          <div class="activity-copy">
+            <div class="activity-name">{{ review.user.name }}</div>
+            <div class="activity-meta">{{ review.course.name }}</div>
+            <div class="review-stars" aria-label="{{ review.stars }} star review">
+              <i class="fa-solid fa-star {% if review.stars >= 1 %}filled{% endif %}"></i>
+              <i class="fa-solid fa-star {% if review.stars >= 2 %}filled{% endif %}"></i>
+              <i class="fa-solid fa-star {% if review.stars >= 3 %}filled{% endif %}"></i>
+              <i class="fa-solid fa-star {% if review.stars >= 4 %}filled{% endif %}"></i>
+              <i class="fa-solid fa-star {% if review.stars >= 5 %}filled{% endif %}"></i>
+            </div>
+            <div class="activity-note">
+              {% if review.comment %}
+                "{{ review.comment|truncatechars:72 }}"
+              {% else %}
+                Shared a {{ review.stars }} star rating.
+              {% endif %}
+            </div>
+          </div>
+          <div class="activity-side">
+            <div class="activity-chip review-chip">{{ review.stars }}.0</div>
+            <div class="activity-time">Latest feedback</div>
+          </div>
+        </div>
+      {% empty %}
+        <div class="activity-empty">No reviews yet.</div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.getElementById('liveDate').textContent = new Date().toLocaleDateString('en-IN', {
+  weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+});
+
+function makeSpark(id, data, color) {
+  const ctx = document.getElementById(id).getContext('2d');
+  const g = ctx.createLinearGradient(0, 0, 0, 54);
+  g.addColorStop(0, color + '30');
+  g.addColorStop(1, color + '00');
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: data.map((_, i) => i),
+      datasets: [{ data, borderColor: color, backgroundColor: g, fill: true, tension: 0.45, borderWidth: 2, pointRadius: 0 }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { enabled: false } },
+      scales: { x: { display: false }, y: { display: false } },
+      animation: { duration: 1200 }
+    }
+  });
+}
+
+makeSpark('s1', {{ monthly_students|safe }}, '#0f9f8a');
+makeSpark('s2', {{ monthly_enrollments|safe }}, '#6aa8ff');
+makeSpark('s3', {{ monthly_revenue|safe }}, '#fbbf24');
+makeSpark('s4', {{ monthly_courses|safe }}, '#34d399');
+
+new Chart(document.getElementById('donutChart').getContext('2d'), {
+  type: 'doughnut',
+  data: {
+    datasets: [{
+      data: [{{ total_enrollments }}, {{ total_reviews }}, {{ total_courses }}, {{ total_quizzes }}],
+      backgroundColor: ['#0f9f8a', '#6aa8ff', '#fbbf24', '#34d399'],
+      borderWidth: 0,
+      hoverOffset: 6
+    }]
+  },
+  options: {
+    cutout: '76%',
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#0f172a',
+        padding: 10,
+        borderColor: 'rgba(255,255,255,0.08)',
+        borderWidth: 1,
+        cornerRadius: 8
+      }
+    },
+    animation: { animateRotate: true, duration: 1400 }
+  }
+});
+
+new Chart(document.getElementById('barChart').getContext('2d'), {
+  type: 'bar',
+  data: {
+    labels: {{ chart_labels|safe }},
+    datasets: [
+      { label: 'Students', data: {{ monthly_students|safe }}, backgroundColor: '#0f9f8a', borderRadius: 6, barPercentage: 0.45 },
+      { label: 'Enrollments', data: {{ monthly_enrollments|safe }}, backgroundColor: '#6aa8ff', borderRadius: 6, barPercentage: 0.45 }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#0f172a',
+        padding: 10,
+        titleColor: '#f8fafc',
+        bodyColor: '#e2e8f0',
+        borderColor: 'rgba(255,255,255,0.08)',
+        borderWidth: 1,
+        cornerRadius: 8
+      }
+    },
+    scales: {
+      x: {
+        grid: { display: false },
+        border: { display: false },
+        ticks: { color: '#475569', font: { size: 11 } }
+      },
+      y: {
+        grid: { color: 'rgba(148,163,184,0.18)' },
+        border: { display: false },
+        ticks: { color: '#475569', font: { size: 11 }, stepSize: 1 }
+      }
+    },
+    animation: { duration: 1200 }
+  }
+});
+
+document.querySelectorAll('.count-up').forEach(el => {
+  const target = +el.dataset.target;
+  const dur = 1100;
+  const start = performance.now();
+  (function tick(now) {
+    const p = Math.min((now - start) / dur, 1);
+    const ease = 1 - Math.pow(1 - p, 3);
+    el.textContent = Math.round(ease * target).toLocaleString();
+    if (p < 1) requestAnimationFrame(tick);
+  })(start);
+});
+</script>
+
+{% endblock %}

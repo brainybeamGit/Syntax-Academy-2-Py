@@ -1,0 +1,243 @@
+{% extends "adminpanel/base.html" %}
+{% load static %}
+
+{% block page_title %}Student Management{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'adminpanel/students.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="students-page">
+    <section class="student-editor-section">
+        <aside class="student-form-card">
+            <div class="panel-label">Student Editor</div>
+
+            <div class="student-form-header">
+                <div class="student-form-icon">
+                    {% if edit_mode %}
+                    <i class="fa-solid fa-pen"></i>
+                    {% else %}
+                    <i class="fa-solid fa-plus"></i>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <h3>{% if edit_mode %}Edit Student{% else %}Add New Student{% endif %}</h3>
+                    <p>Keep student details, level settings, and credentials in one premium control panel.</p>
+                </div>
+            </div>
+
+            <form method="POST" class="student-form">
+                {% csrf_token %}
+
+                {% if form_error %}
+                <div class="student-form-alert">
+                    {{ form_error }}
+                </div>
+                {% endif %}
+
+                <div class="student-form-grid">
+                    <div class="student-form-group">
+                        <label for="studentName">Full Name</label>
+                        <input id="studentName" type="text" name="name" value="{{ student.name|default:'' }}" required>
+                    </div>
+
+                    <div class="student-form-group">
+                        <label for="studentEmail">Email</label>
+                        <input id="studentEmail" type="email" name="email" value="{{ student.email|default:'' }}" required>
+                    </div>
+
+                    <div class="student-form-group">
+                        <label for="studentMobile">Mobile</label>
+                        <input id="studentMobile" type="text" name="mobile" value="{{ student.mobile|default:'' }}" inputmode="numeric" pattern="[0-9]*" maxlength="10" data-numeric-only required>
+                    </div>
+
+                    <div class="student-form-group">
+                        <label for="studentLevel">Level</label>
+                        <select id="studentLevel" name="level">
+                            <option value="beginner" {% if student.level == 'beginner' %}selected{% endif %}>Beginner</option>
+                            <option value="intermediate" {% if student.level == 'intermediate' %}selected{% endif %}>Intermediate</option>
+                            <option value="advanced" {% if student.level == 'advanced' %}selected{% endif %}>Advanced</option>
+                            <option value="pro" {% if student.level == 'pro' %}selected{% endif %}>Pro Developer</option>
+                        </select>
+                    </div>
+
+                    <div class="student-form-group student-form-group-password">
+                        <label for="studentPassword">{% if edit_mode %}Password (leave blank to keep current){% else %}Password{% endif %}</label>
+                        <input id="studentPassword" type="text" name="password" {% if not edit_mode %}required{% endif %}>
+                    </div>
+                </div>
+
+                <div class="student-btn-row">
+                    <button type="submit" class="student-btn-primary">
+                        <i class="fa-solid {% if edit_mode %}fa-floppy-disk{% else %}fa-plus{% endif %}"></i>
+                        {% if edit_mode %}Update Student{% else %}Add Student{% endif %}
+                    </button>
+
+                    {% if edit_mode %}
+                    <a href="{% url 'students_manage' %}" class="student-btn-secondary">Cancel</a>
+                    {% endif %}
+                </div>
+            </form>
+        </aside>
+    </section>
+
+    <section class="students-table-panel">
+        <div class="students-table-header">
+            <div>
+                <div class="panel-label">Student Directory</div>
+                <div class="student-directory-title">
+                    <h3>Latest learners in your academy</h3>
+                    <span class="student-directory-count" id="studentVisibleCount">{{ total_students }}</span>
+                </div>
+                <p>Search by learner name, email, or mobile, then filter by level to manage students faster.</p>
+            </div>
+
+            <label class="student-search" for="studentSearch">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="studentSearch" placeholder="Search students...">
+            </label>
+        </div>
+
+        <div class="student-filter-bar">
+            <div class="student-filter-group">
+                <button type="button" class="student-filter-chip active" data-level-filter="all">
+                    <span>All</span>
+                    <strong>{{ total_students }}</strong>
+                </button>
+                {% for level in level_breakdown %}
+                <button type="button" class="student-filter-chip" data-level-filter="{{ level.code }}">
+                    <span>{{ level.label }}</span>
+                    <strong>{{ level.total }}</strong>
+                </button>
+                {% endfor %}
+            </div>
+        </div>
+
+        {% if students %}
+        <div class="table-scroll">
+            <table class="students-table" id="studentTable">
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Contact</th>
+                        <th>Level</th>
+                        <th>Enrollments</th>
+                        <th>Spend</th>
+                        <th>Reviews</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for s in students %}
+                    <tr data-student-row data-level="{{ s.level }}">
+                        <td>
+                            <div class="student-cell">
+                                <div class="student-avatar">{{ s.name|slice:":1"|upper }}</div>
+                                <div>
+                                    <div class="student-name">{{ s.name }}</div>
+                                    <div class="student-subtext">
+                                        {% if s.joined_at %}
+                                        Joined {{ s.joined_at|date:"d M Y" }}
+                                        {% else %}
+                                        Join date pending
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td>
+                            <div class="student-contact-stack">
+                                <div class="student-contact-primary">{{ s.email }}</div>
+                                <div class="student-subtext">{{ s.mobile }}</div>
+                            </div>
+                        </td>
+
+                        <td>
+                            <span class="level-badge {{ s.level }}">{{ s.level_label }}</span>
+                        </td>
+
+                        <td><span class="student-table-value">{{ s.enrollment_total }}</span></td>
+                        <td><span class="student-table-value">&#8377;{{ s.total_spent }}</span></td>
+                        <td><span class="student-table-value">{{ s.review_total }}</span></td>
+
+                        <td>
+                            <div class="actions-cell">
+                                <a href="?action=edit&pk={{ s.id }}" class="action edit" title="Edit">
+                                    <i class="fa-solid fa-pen"></i>
+                                </a>
+
+                                <a href="?action=delete&pk={{ s.id }}"
+                                   onclick="return confirmDelete('{{ s.name|escapejs }}')"
+                                   class="action delete"
+                                   title="Delete">
+                                    <i class="fa-solid fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-students-state">
+            <i class="fa-solid fa-user-group"></i>
+            <h4>No students yet</h4>
+            <p>Add your first student to see learner avatars, level insights, and directory actions here.</p>
+        </div>
+        {% endif %}
+    </section>
+</div>
+
+<script>
+const studentSearchInput = document.getElementById('studentSearch');
+const studentFilterButtons = document.querySelectorAll('[data-level-filter]');
+const studentVisibleCount = document.getElementById('studentVisibleCount');
+let activeLevelFilter = 'all';
+
+function applyStudentFilters() {
+    const query = studentSearchInput ? studentSearchInput.value.toLowerCase() : '';
+    let visibleCount = 0;
+
+    document.querySelectorAll('[data-student-row]').forEach((row) => {
+        const text = row.textContent.toLowerCase();
+        const rowLevel = row.dataset.level;
+        const matchesSearch = text.includes(query);
+        const matchesLevel = activeLevelFilter === 'all' || rowLevel === activeLevelFilter;
+        const isVisible = matchesSearch && matchesLevel;
+
+        row.style.display = isVisible ? '' : 'none';
+        if (isVisible) {
+            visibleCount += 1;
+        }
+    });
+
+    if (studentVisibleCount) {
+        studentVisibleCount.textContent = visibleCount;
+    }
+}
+
+if (studentSearchInput) {
+    studentSearchInput.addEventListener('input', applyStudentFilters);
+}
+
+studentFilterButtons.forEach((button) => {
+    button.addEventListener('click', function () {
+        activeLevelFilter = this.dataset.levelFilter;
+        studentFilterButtons.forEach((chip) => chip.classList.remove('active'));
+        this.classList.add('active');
+        applyStudentFilters();
+    });
+});
+
+function confirmDelete(name) {
+    return confirm(`Delete "${name}"?\n\nThis action cannot be undone.`);
+}
+
+applyStudentFilters();
+</script>
+{% endblock %}

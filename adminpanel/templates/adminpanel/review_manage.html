@@ -1,0 +1,282 @@
+{% extends "adminpanel/base.html" %}
+{% load static %}
+
+{% block page_title %}Review Management{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'adminpanel/reviews.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="reviews-page">
+    <div class="dashboard-header review-dashboard-header">
+        <div class="dashboard-header-inner">
+            <div>
+                <div class="dashboard-title"><h1>Review Management</h1></div>
+                <div class="dashboard-subtitle">
+                    <div class="dashboard-dot"></div>
+                    Track learner sentiment, spotlight top courses, and moderate feedback from one premium review board
+                </div>
+            </div>
+
+            <div class="dashboard-meta">
+                <div class="dashboard-date">
+                    <i class="fa-regular fa-calendar"></i>
+                    <span id="liveDate"></span>
+                </div>
+                <div class="dashboard-admin-panel">
+                    <div class="dashboard-admin-copy">
+                        <span class="dashboard-admin-name">{% firstof request.user.get_full_name request.user.username "Admin" %}</span>
+                    </div>
+                    <a href="{% url 'logout' %}" class="dashboard-logout">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                        Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% comment %} <section class="review-hero-grid">
+        <div class="review-metric-card metric-card-primary">
+            <div class="metric-topline">
+                <span class="metric-label">Average rating</span>
+                <span class="metric-chip">{{ total_reviews }} review{{ total_reviews|pluralize }}</span>
+            </div>
+            <div class="metric-value-block">
+                <div class="metric-value">{{ average_rating }}</div>
+                <div class="metric-stars" aria-label="{{ average_rating }} average stars">
+                    <i class="fa-solid fa-star {% if average_rating >= 1 %}filled{% endif %}"></i>
+                    <i class="fa-solid fa-star {% if average_rating >= 2 %}filled{% endif %}"></i>
+                    <i class="fa-solid fa-star {% if average_rating >= 3 %}filled{% endif %}"></i>
+                    <i class="fa-solid fa-star {% if average_rating >= 4 %}filled{% endif %}"></i>
+                    <i class="fa-solid fa-star {% if average_rating >= 5 %}filled{% endif %}"></i>
+                </div>
+            </div>
+            <p class="metric-copy">A quick quality snapshot across all learner feedback currently stored in the admin panel.</p>
+        </div>
+
+        <div class="review-stat-stack">
+            <div class="mini-stat-card">
+                <div class="mini-stat-icon">
+                    <i class="fa-solid fa-comment-dots"></i>
+                </div>
+                <div>
+                    <div class="mini-stat-value">{{ commented_reviews }}</div>
+                    <div class="mini-stat-label">Written reviews</div>
+                </div>
+            </div>
+            <div class="mini-stat-card">
+                <div class="mini-stat-icon gold">
+                    <i class="fa-solid fa-star"></i>
+                </div>
+                <div>
+                    <div class="mini-stat-value">{{ five_star_reviews }}</div>
+                    <div class="mini-stat-label">Five star ratings</div>
+                </div>
+            </div>
+            <div class="mini-stat-card">
+                <div class="mini-stat-icon blue">
+                    <i class="fa-solid fa-chart-simple"></i>
+                </div>
+                <div>
+                    <div class="mini-stat-value">{{ five_star_share }}%</div>
+                    <div class="mini-stat-label">Five star share</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="review-intelligence-grid">
+        <div class="review-panel rating-panel">
+            <div class="panel-label">Rating Breakdown</div>
+            <h3>How learners are rating your academy.</h3>
+            <div class="rating-breakdown">
+                {% for row in rating_breakdown %}
+                <div class="rating-row">
+                    <div class="rating-row-label">
+                        <span>{{ row.stars }} star</span>
+                    </div>
+                    <div class="rating-bar-track">
+                        <div class="rating-bar-fill" style="width: {{ row.percentage }}%;"></div>
+                    </div>
+                    <div class="rating-row-meta">
+                        <strong>{{ row.count }}</strong>
+                        <span>{{ row.percentage }}%</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="review-panel spotlight-panel">
+            <div class="panel-label">Top Rated Courses</div>
+            <h3>Courses earning the best learner sentiment.</h3>
+            <div class="spotlight-course-list">
+                {% for course in top_courses %}
+                <div class="spotlight-course-item">
+                    <div class="spotlight-course-main">
+                        <div class="spotlight-course-name">{{ course.name }}</div>
+                        <div class="spotlight-course-meta">{{ course.review_total }} review{{ course.review_total|pluralize }}</div>
+                    </div>
+                    <div class="spotlight-course-score">
+                        <i class="fa-solid fa-star"></i>
+                        {{ course.average_rating|floatformat:1 }}
+                    </div>
+                </div>
+                {% empty %}
+                <div class="empty-mini-state">No review data yet to rank courses.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </section> {% endcomment %}
+
+    <section class="review-stream-panel">
+        <div class="review-stream-header">
+            <div>
+                <div class="panel-label">Review Feed</div>
+                <h3>Latest feedback from learners</h3>
+                <p>Search by learner or course, then filter by star rating to inspect feedback quality faster.</p>
+            </div>
+
+            <label class="review-search" for="reviewSearch">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="reviewSearch" placeholder="Search reviews...">
+            </label>
+        </div>
+
+        <div class="review-filter-bar">
+            <div class="review-filter-group" id="reviewFilterGroup">
+                <button type="button" class="review-filter-chip active" data-stars-filter="all">
+                    <span>All</span>
+                    <strong>{{ total_reviews }}</strong>
+                </button>
+                {% for row in rating_breakdown %}
+                <button type="button" class="review-filter-chip" data-stars-filter="{{ row.stars }}">
+                    <span>{{ row.stars }} Star</span>
+                    <strong>{{ row.count }}</strong>
+                </button>
+                {% endfor %}
+            </div>
+        </div>
+
+        {% if reviews %}
+        <div class="review-card-grid" id="reviewGrid">
+            {% for review in reviews %}
+            <article class="review-feed-card" data-review-card data-stars="{{ review.stars }}">
+                <div class="review-feed-top">
+                    <div class="review-user-chip">
+                        <div class="review-avatar-badge">{{ review.user.name|slice:":1"|upper }}</div>
+                        <div>
+                            <div class="review-user-name">{{ review.user.name }}</div>
+                            <div class="review-course-name">{{ review.course.name }}</div>
+                        </div>
+                    </div>
+
+                    <div class="review-score-badge">
+                        <i class="fa-solid fa-star"></i>
+                        {{ review.stars }}.0
+                    </div>
+                </div>
+
+                <div class="review-feed-stars" aria-label="{{ review.stars }} star review">
+                    <i class="fa-solid fa-star {% if review.stars >= 1 %}filled{% endif %}"></i>
+                    <i class="fa-solid fa-star {% if review.stars >= 2 %}filled{% endif %}"></i>
+                    <i class="fa-solid fa-star {% if review.stars >= 3 %}filled{% endif %}"></i>
+                    <i class="fa-solid fa-star {% if review.stars >= 4 %}filled{% endif %}"></i>
+                    <i class="fa-solid fa-star {% if review.stars >= 5 %}filled{% endif %}"></i>
+                </div>
+
+                <div class="review-feed-copy">
+                    {% if review.comment %}
+                        "{{ review.comment }}"
+                    {% else %}
+                        This learner left a rating without written feedback.
+                    {% endif %}
+                </div>
+
+                <div class="review-feed-footer">
+                    <span class="review-tone {% if review.stars >= 4 %}tone-positive{% elif review.stars == 3 %}tone-neutral{% else %}tone-negative{% endif %}">
+                        {% if review.stars >= 4 %}Positive{% elif review.stars == 3 %}Mixed{% else %}Needs attention{% endif %}
+                    </span>
+                    <a href="?action=delete&pk={{ review.id }}"
+                       class="review-delete-link"
+                       onclick="return confirmReviewDelete('{{ review.user.name|escapejs }}', '{{ review.course.name|escapejs }}')">
+                        <i class="fa-solid fa-trash"></i>
+                        Delete
+                    </a>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-review-state">
+            <i class="fa-solid fa-star-half-stroke"></i>
+            <h4>No reviews yet</h4>
+            <p>Once learners start rating courses, the review board will show feedback here.</p>
+        </div>
+        {% endif %}
+    </section>
+</div>
+
+<script>
+const liveDateNode = document.getElementById('liveDate');
+if (liveDateNode) {
+    liveDateNode.textContent = new Date().toLocaleDateString('en-IN', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+}
+
+const reviewSearchInput = document.getElementById('reviewSearch');
+const reviewFilterButtons = document.querySelectorAll('[data-stars-filter]');
+const reviewVisibleCount = document.getElementById('reviewVisibleCount');
+let activeStarsFilter = 'all';
+
+function applyReviewFilters() {
+    const query = reviewSearchInput ? reviewSearchInput.value.toLowerCase() : '';
+    let visibleCount = 0;
+
+    document.querySelectorAll('[data-review-card]').forEach((card) => {
+        const text = card.textContent.toLowerCase();
+        const cardStars = card.dataset.stars;
+        const matchesSearch = text.includes(query);
+        const matchesStars = activeStarsFilter === 'all' || cardStars === activeStarsFilter;
+        const isVisible = matchesSearch && matchesStars;
+        card.style.display = isVisible ? '' : 'none';
+        if (isVisible) {
+            visibleCount += 1;
+        }
+    });
+
+    if (reviewVisibleCount) {
+        reviewVisibleCount.textContent = visibleCount;
+    }
+}
+
+if (reviewSearchInput) {
+    reviewSearchInput.addEventListener('input', applyReviewFilters);
+}
+
+reviewFilterButtons.forEach((button) => {
+    button.addEventListener('click', function () {
+        activeStarsFilter = this.dataset.starsFilter;
+        reviewFilterButtons.forEach((chip) => chip.classList.remove('active'));
+        this.classList.add('active');
+        applyReviewFilters();
+    });
+});
+
+function confirmReviewDelete(userName, courseName) {
+    return window.confirm(
+        `Delete the review from "${userName}" for "${courseName}"?\n\nThis will permanently remove the feedback from the admin panel.`
+    );
+}
+
+applyReviewFilters();
+</script>
+
+{% endblock %}

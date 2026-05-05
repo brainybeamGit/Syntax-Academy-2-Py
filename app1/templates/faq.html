@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'css/faq.css' %}">
+
+<div class="faq-wrapper">
+
+    <div class="faq-header">
+        <h1>Frequently Asked Questions</h1>
+        <p>Everything you need to know about <span>Syntax Academy</span></p>
+    </div>
+
+    <div class="faq-container">
+
+        <div class="faq-item">
+            <button class="faq-question">
+                What is Syntax Academy?
+                <span>+</span>
+            </button>
+            <div class="faq-answer">
+                Syntax Academy is a platform where beginners can learn programming through structured courses, quizzes, and hands-on practice.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-question">
+                Are the courses beginner friendly?
+                <span>+</span>
+            </button>
+            <div class="faq-answer">
+                Yes. Most courses start from the fundamentals and gradually move to advanced concepts with practical examples.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-question">
+                Do I need prior coding experience?
+                <span>+</span>
+            </button>
+            <div class="faq-answer">
+                No experience is required. Syntax Academy is designed to help complete beginners start their programming journey.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-question">
+                How do quizzes work?
+                <span>+</span>
+            </button>
+            <div class="faq-answer">
+                After completing a lesson you can attempt quizzes to test your understanding and track your progress.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-question">
+                Is Syntax Academy free?
+                <span>+</span>
+            </button>
+            <div class="faq-answer">
+                Many learning resources are free. More advanced courses may be added in the future.
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+document.querySelectorAll(".faq-question").forEach(btn => {
+
+    btn.addEventListener("click", () => {
+
+        const item = btn.parentElement;
+
+        document.querySelectorAll(".faq-item").forEach(faq=>{
+            if(faq !== item){
+                faq.classList.remove("active");
+            }
+        });
+
+        item.classList.toggle("active");
+
+    });
+
+});
+</script>
+
+{% endblock %}

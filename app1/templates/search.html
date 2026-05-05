@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% load static %}
+
+
+{% block content %}
+
+<section style="padding-top:120px; padding-bottom:80px;">
+
+    <div class="container">
+
+        <!-- PAGE TITLE -->
+        <div class="text-center mb-5">
+            {% if query %}
+                <h2 class="search-title">
+                    Search Results for 
+                    <span class="search-query">"{{ query }}"</span>
+                </h2>
+            {% else %}
+                <h2 class="search-title">
+                    Search Results
+                </h2>
+            {% endif %}
+        </div>
+
+        <div class="row g-4">
+
+            {% if results %}
+
+                {% for i in results %}
+                <div class="col-md-4">
+
+                    <div class="course-card-pro">
+
+                        <!-- Thumbnail -->
+                        <div class="course-thumb">
+                            <img src="{{ i.thumbnail.url }}" alt="">
+                            <span class="level {{ i.level }}">
+                                {{ i.level|title }}
+                            </span>
+                        </div>
+
+                        <!-- Body -->
+                        <div class="course-body">
+
+                            <h5 class="course-title">
+                                {{ i.name }}
+                            </h5>
+
+                            <p class="course-desc">
+                                {{ i.description|truncatechars:90 }}
+                            </p>
+
+                            <!-- Stats -->
+                            <div class="course-stats">
+                                <span>
+                                    <i class="bi bi-collection-play"></i>
+                                    {{ i.lessons_count }} Lessons
+                                </span>
+
+                                <span>
+                                    <i class="bi bi-clock"></i>
+                                    {{ i.duration_weeks }} Weeks
+                                </span>
+                            </div>
+
+                            <div class="course-proof">
+                                <span class="rating">
+                                    <i class="bi bi-star-fill"></i>
+                                    {{ i.avg_rating }}
+                                </span>
+
+                                <span class="students">
+                                    <i class="bi bi-people"></i>
+                                    {{ i.students_count }} Students
+                                </span>
+                            </div>
+
+                            <a href="{% url 'courses' i.id %}"
+                               class="btn course-btn w-100 mt-3">
+                                Start Learning
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+                {% endfor %}
+
+            {% elif query %}
+
+                <!-- NO RESULT MESSAGE -->
+                <div class="text-center mt-5">
+                    <h4 style="color:#eaeaea;">
+                        No courses found for "{{ query }}"
+                    </h4>
+                    <p style="opacity:.6;">
+                        Try searching with a different keyword.
+                    </p>
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</section>
+
+{% endblock %}
+
+{% block footer %}{% endblock %}

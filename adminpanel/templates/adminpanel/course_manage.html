@@ -1,0 +1,246 @@
+{% extends "adminpanel/base.html" %}
+{% load static %}
+
+{% block page_title %}Course Management{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'adminpanel/course.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="course-page">
+    <div class="dashboard-header course-dashboard-header">
+        <div class="dashboard-header-inner">
+            <div>
+                <div class="dashboard-title"><h1>Course Management</h1></div>
+                <div class="dashboard-subtitle">
+                    <div class="dashboard-dot"></div>
+                    Shape your academy catalog with a polished dashboard-style workflow
+                </div>
+            </div>
+
+            <div class="dashboard-meta">
+                <div class="dashboard-date">
+                    <i class="fa-regular fa-calendar"></i>
+                    <span id="liveDate"></span>
+                </div>
+                <div class="dashboard-admin-panel">
+                    <div class="dashboard-admin-copy">
+                        <span class="dashboard-admin-name">{% firstof request.user.get_full_name request.user.username "Admin" %}</span>
+                    </div>
+                    <a href="{% url 'logout' %}" class="dashboard-logout">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                        Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="course-studio-grid course-editor-only">
+        <section class="card-box form-card">
+            <div class="section-label">Course Editor</div>
+
+            <div class="form-card-header">
+                <div class="form-card-icon">
+                    {% if edit_mode %}
+                        <i class="fa-solid fa-pen"></i>
+                    {% else %}
+                        <i class="fa-solid fa-plus"></i>
+                    {% endif %}
+                </div>
+                <div>
+                    <h3>{% if edit_mode %}Edit Course{% else %}Create New Course{% endif %}</h3>
+                    <p>{% if edit_mode %}Refresh the details below and keep the listing sharp.{% else %}Add the essentials for a strong first impression in your course library.{% endif %}</p>
+                </div>
+            </div>
+
+            <form method="POST" enctype="multipart/form-data" class="premium-form">
+                {% csrf_token %}
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Course Name</label>
+                        <input type="text" name="name"
+                               placeholder="e.g. Python for Beginners"
+                               value="{{ course.name|default:'' }}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Duration (Weeks)</label>
+                        <input type="text" name="duration_weeks"
+                               placeholder="e.g. 8"
+                               value="{{ course.duration_weeks|default:'' }}" inputmode="numeric" pattern="[0-9]*" data-numeric-only required>
+                    </div>
+
+                    <div class="form-group full">
+                        <label>Description</label>
+                        <textarea name="description" rows="4"
+                                  placeholder="Briefly describe what students will learn..." required>{{ course.description|default:'' }}</textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Level</label>
+                        <select name="level">
+                            <option value="beginner" {% if course.level == 'beginner' %}selected{% endif %}>Beginner</option>
+                            <option value="intermediate" {% if course.level == 'intermediate' %}selected{% endif %}>Intermediate</option>
+                            <option value="advanced" {% if course.level == 'advanced' %}selected{% endif %}>Advanced</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Thumbnail</label>
+                        <div class="file-input-wrapper">
+                            <input type="file" name="thumbnail" accept="image/*">
+                        </div>
+                    </div>
+
+                    <div class="form-group full checkbox">
+                        <label>
+                            <input type="checkbox" name="is_featured" {% if course.is_featured %}checked{% endif %}>
+                            Mark as Featured Course
+                        </label>
+                    </div>
+                </div>
+
+                <div class="btn-row">
+                    <button type="submit" class="btn-primary">
+                        <i class="fa-solid {% if edit_mode %}fa-floppy-disk{% else %}fa-plus{% endif %}"></i>
+                        {% if edit_mode %}Update Course{% else %}Add Course{% endif %}
+                    </button>
+                    {% if edit_mode %}
+                        <a href="{% url 'course_manage' %}" class="btn-secondary">Cancel</a>
+                    {% endif %}
+                </div>
+            </form>
+        </section>
+    </div>
+
+    <section class="card-box table-card">
+        <div class="table-card-header">
+            <div class="table-header-copy">
+                <div class="section-label">Course Library</div>
+                <div class="table-card-title">
+                    <h3>All Courses</h3>
+                    <span class="table-count">{{ courses|length }}</span>
+                </div>
+                <p>Search, review and manage every published course from one place.</p>
+            </div>
+
+            <label class="search-box" for="courseSearch">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" placeholder="Search courses..." id="courseSearch">
+            </label>
+        </div>
+
+        {% if courses %}
+        <div class="table-scroll">
+            <table class="premium-table" id="courseTable">
+                <thead>
+                    <tr>
+                        <th>Course</th>
+                        <th>Level</th>
+                        <th>Duration</th>
+                        <th>Students</th>
+                        <th>Lessons</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for c in courses %}
+                <tr>
+                    <td>
+                        <div class="course-cell">
+                            {% if c.thumbnail %}
+                                <img src="{{ c.thumbnail.url }}" class="course-thumb" alt="{{ c.name }}">
+                            {% else %}
+                                <div class="thumb-placeholder">{{ c.name|slice:":1"|upper }}</div>
+                            {% endif %}
+                            <div>
+                                <div class="course-title">{{ c.name }}</div>
+                                <div class="course-desc">{{ c.description|truncatechars:60 }}</div>
+                            </div>
+                        </div>
+                    </td>
+
+                    <td>
+                        <span class="level-badge {{ c.level }}">{{ c.level|title }}</span>
+                    </td>
+
+                    <td>{{ c.duration_weeks }}w</td>
+                    <td>{{ c.students_count }}</td>
+                    <td>{{ c.lessons_count }}</td>
+
+                    <td>
+                        {% if c.is_active %}
+                            <span class="status active">Active</span>
+                        {% else %}
+                            <span class="status inactive">Inactive</span>
+                        {% endif %}
+                    </td>
+
+                    <td>{{ c.created_at|date:"d M Y" }}</td>
+
+                    <td>
+                        <div class="actions-cell">
+                            <a href="?action=edit&pk={{ c.id }}" class="action edit" title="Edit">
+                                <i class="fa-solid fa-pen"></i>
+                            </a>
+                            <a href="?action=delete&pk={{ c.id }}"
+                               onclick="return confirmCourseDelete('{{ c.name|escapejs }}')"
+                               class="action delete" title="Delete">
+                                <i class="fa-solid fa-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <i class="fa-solid fa-book-open"></i>
+            </div>
+            <h4>No courses yet</h4>
+            <p>Start with your first course above and your library will appear here.</p>
+        </div>
+        {% endif %}
+    </section>
+</div>
+
+<script>
+const dateNode = document.getElementById('liveDate');
+if (dateNode) {
+    dateNode.textContent = new Date().toLocaleDateString('en-IN', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+}
+
+const searchInput = document.getElementById('courseSearch');
+if (searchInput) {
+    searchInput.addEventListener('input', function () {
+        const query = this.value.toLowerCase();
+        document.querySelectorAll('#courseTable tbody tr').forEach((row) => {
+            const title = row.querySelector('.course-title');
+            const text = title ? title.textContent.toLowerCase() : '';
+            row.style.display = text.includes(query) ? '' : 'none';
+        });
+    });
+}
+
+function confirmCourseDelete(courseName) {
+    return window.confirm(
+        `Delete "${courseName}"?\n\nThis will permanently remove the course from the admin panel.`
+    );
+}
+</script>
+
+{% endblock %}

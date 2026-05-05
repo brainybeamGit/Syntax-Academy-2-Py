@@ -1,0 +1,258 @@
+{% extends "adminpanel/base.html" %}
+{% load static %}
+
+{% block page_title %}Quiz Management{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'adminpanel/quizzes.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="quizzes-page">
+    <div class="dashboard-header quizzes-dashboard-header">
+        <div class="dashboard-header-inner">
+            <div>
+                <div class="dashboard-title"><h1>Quiz Management</h1></div>
+                <div class="dashboard-subtitle">
+                    <div class="dashboard-dot"></div>
+                    Review quiz coverage, student attempts, and course-linked assessments from one admin page.
+                </div>
+            </div>
+
+            <div class="dashboard-meta">
+                <div class="dashboard-date">
+                    <i class="fa-regular fa-calendar"></i>
+                    <span id="liveDate"></span>
+                </div>
+
+                <div class="dashboard-admin-panel">
+                    <div class="dashboard-admin-copy">
+                        <span class="dashboard-admin-name">
+                            {% firstof request.user.get_full_name request.user.username "Admin" %}
+                        </span>
+                    </div>
+                    <a href="{% url 'admin_logout' %}" class="dashboard-logout">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                        Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <section class="quiz-editor-section">
+        <article class="quiz-form-card">
+            <div class="panel-label">Quiz Upload</div>
+
+            <div class="quiz-form-header">
+                <div class="quiz-form-icon">
+                    <i class="fa-solid fa-plus"></i>
+                </div>
+
+                <div>
+                    <h3>Add Quiz JSON</h3>
+                    <p>Choose course, add quiz name, and paste JSON.</p>
+                </div>
+            </div>
+
+            <form method="POST" class="quiz-form">
+                {% csrf_token %}
+
+                {% if quiz_form_error %}
+                <div class="quiz-form-alert">{{ quiz_form_error }}</div>
+                {% endif %}
+
+                <div class="quiz-form-grid">
+                    <div class="quiz-form-group">
+                        <label for="quizCourse">Language / Course</label>
+                        <select id="quizCourse" name="course" required>
+                            <option value="">Choose course</option>
+                            {% for course in courses %}
+                            <option value="{{ course.id }}" {% if selected_course_id == course.id|stringformat:"s" %}selected{% endif %}>{{ course.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="quiz-form-group">
+                        <label for="quizTitle">Quiz Name</label>
+                        <input id="quizTitle" type="text" name="title" value="{{ quiz_name }}" placeholder="Enter quiz name">
+                    </div>
+                </div>
+
+                <div class="quiz-form-group">
+                    <label for="quizJsonPayload">Quiz JSON</label>
+                    <textarea id="quizJsonPayload" name="json_payload" rows="14" spellcheck="false" required>{{ json_payload }}</textarea>
+                </div>
+
+                <div class="quiz-btn-row">
+                    <button type="submit" class="quiz-btn-primary">
+                        <i class="fa-solid fa-upload"></i>
+                        Upload Quiz JSON
+                    </button>
+                </div>
+            </form>
+        </article>
+    </section>
+
+    <section class="quizzes-table-panel">
+        <div class="quizzes-table-header">
+            <div>
+                <div class="panel-label">Quiz Directory</div>
+                <div class="quiz-directory-title">
+                    <h3>Course quizzes</h3>
+                    <span class="quiz-directory-count" id="quizVisibleCount">{{ total_quizzes }}</span>
+                </div>
+                <p>Search by quiz title or course, then filter by course level to manage assessments faster.</p>
+            </div>
+
+            <label class="quiz-search" for="quizSearch">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="quizSearch" placeholder="Search quizzes...">
+            </label>
+        </div>
+
+        <div class="quiz-filter-bar">
+            <div class="quiz-filter-group">
+                <button type="button" class="quiz-filter-chip active" data-level-filter="all">
+                    <span>All</span>
+                    <strong>{{ total_quizzes }}</strong>
+                </button>
+                {% for level in level_breakdown %}
+                <button type="button" class="quiz-filter-chip" data-level-filter="{{ level.code }}">
+                    <span>{{ level.label }}</span>
+                    <strong>{{ level.total }}</strong>
+                </button>
+                {% endfor %}
+            </div>
+
+            <div class="quiz-active-chip">
+                Active Quizzes
+                <strong>{{ active_quizzes }}</strong>
+            </div>
+        </div>
+
+        {% if quizzes %}
+        <div class="table-scroll">
+            <table class="quizzes-table">
+                <thead>
+                    <tr>
+                        <th>Quiz</th>
+                        <th>Course</th>
+                        <th>Level</th>
+                        <th>Questions</th>
+                        <th>Attempts</th>
+                        <th>Avg Score</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for quiz in quizzes %}
+                    <tr data-quiz-row data-level="{{ quiz.level_code }}">
+                        <td>
+                            <a href="{% url 'quiz_questions_manage' quiz.id %}" class="quiz-title-link">
+                            <div class="quiz-title-cell">
+                                <div class="quiz-avatar">{{ quiz.title|slice:":1"|upper }}</div>
+                                <div>
+                                    <div class="quiz-name">{{ quiz.title }}</div>
+                                </div>
+                            </div>
+                            </a>
+                        </td>
+
+                        <td>
+                            <div class="quiz-course-name">{{ quiz.course.name }}</div>
+                            <div class="quiz-subtext">{{ quiz.course.duration_weeks }} week{{ quiz.course.duration_weeks|pluralize }}</div>
+                        </td>
+
+                        <td>
+                            <span class="level-badge {{ quiz.level_code }}">{{ quiz.level_label }}</span>
+                        </td>
+
+                        <td><span class="quiz-table-value">{{ quiz.question_total }}</span></td>
+                        <td><span class="quiz-table-value">{{ quiz.attempt_total }}</span></td>
+                        <td><span class="quiz-table-value">{{ quiz.average_percentage }}%</span></td>
+
+                        <td>
+                            <div class="actions-cell">
+                                <a href="?action=delete&pk={{ quiz.id }}"
+                                   onclick="return confirmDelete('{{ quiz.title|escapejs }}')"
+                                   class="action delete"
+                                   title="Delete quiz">
+                                    <i class="fa-solid fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-quizzes-state">
+            <i class="fa-solid fa-brain"></i>
+            <h4>No quizzes yet</h4>
+            <p>Once quizzes are attached to courses, they will appear here with question and attempt counts.</p>
+        </div>
+        {% endif %}
+    </section>
+</div>
+
+<script>
+const dateNode = document.getElementById('liveDate');
+if (dateNode) {
+    dateNode.textContent = new Date().toLocaleDateString('en-IN', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+}
+
+const quizSearchInput = document.getElementById('quizSearch');
+const quizFilterButtons = document.querySelectorAll('[data-level-filter]');
+const quizVisibleCount = document.getElementById('quizVisibleCount');
+let activeLevelFilter = 'all';
+
+function applyQuizFilters() {
+    const query = quizSearchInput ? quizSearchInput.value.toLowerCase() : '';
+    let visibleCount = 0;
+
+    document.querySelectorAll('[data-quiz-row]').forEach((row) => {
+        const text = row.textContent.toLowerCase();
+        const rowLevel = row.dataset.level;
+        const matchesSearch = text.includes(query);
+        const matchesLevel = activeLevelFilter === 'all' || rowLevel === activeLevelFilter;
+        const isVisible = matchesSearch && matchesLevel;
+
+        row.style.display = isVisible ? '' : 'none';
+        if (isVisible) {
+            visibleCount += 1;
+        }
+    });
+
+    if (quizVisibleCount) {
+        quizVisibleCount.textContent = visibleCount;
+    }
+}
+
+if (quizSearchInput) {
+    quizSearchInput.addEventListener('input', applyQuizFilters);
+}
+
+quizFilterButtons.forEach((button) => {
+    button.addEventListener('click', function () {
+        activeLevelFilter = this.dataset.levelFilter;
+        quizFilterButtons.forEach((chip) => chip.classList.remove('active'));
+        this.classList.add('active');
+        applyQuizFilters();
+    });
+});
+
+function confirmDelete(title) {
+    return confirm(`Delete quiz "${title}"?\n\nThis action cannot be undone.`);
+}
+
+applyQuizFilters();
+</script>
+{% endblock %}

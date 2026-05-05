@@ -1,0 +1,230 @@
+{% extends "adminpanel/base.html" %}
+{% load static %}
+
+{% block page_title %}Notes Management{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'adminpanel/notes.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="course-page notes-page">
+    <div class="dashboard-header course-dashboard-header">
+        <div class="dashboard-header-inner">
+            <div>
+                <div class="dashboard-title"><h1>Notes Management</h1></div>
+                <div class="dashboard-subtitle">
+                    <div class="dashboard-dot"></div>
+                    Organize course notes with the same clean admin flow as the lessons page
+                </div>
+            </div>
+
+            <div class="dashboard-meta">
+                <div class="dashboard-date">
+                    <i class="fa-regular fa-calendar"></i>
+                    <span id="liveDate"></span>
+                </div>
+                <div class="dashboard-admin-panel">
+                    <div class="dashboard-admin-copy">
+                        <span class="dashboard-admin-name">{% firstof request.user.get_full_name request.user.username "Admin" %}</span>
+                    </div>
+                    <a href="{% url 'logout' %}" class="dashboard-logout">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                        Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="course-studio-grid course-editor-only">
+        <section class="card-box form-card">
+            <div class="section-label">Notes Editor</div>
+
+            <div class="form-card-header">
+                <div class="form-card-icon">
+                    {% if edit_mode %}
+                        <i class="fa-solid fa-pen"></i>
+                    {% else %}
+                        <i class="fa-solid fa-file-lines"></i>
+                    {% endif %}
+                </div>
+                <div>
+                    <h3>{% if edit_mode %}Edit Note{% else %}Add New Note{% endif %}</h3>
+                    <p>{% if edit_mode %}Update the note name, course mapping or attached file below.{% else %}Upload a clean note file and connect it to the right course.{% endif %}</p>
+                </div>
+            </div>
+
+            {% if not courses %}
+            <div class="notes-alert">
+                <i class="fa-solid fa-circle-info"></i>
+                <span>Create a course first so notes can be assigned correctly.</span>
+            </div>
+            {% endif %}
+
+            <form method="POST" enctype="multipart/form-data" class="premium-form">
+                {% csrf_token %}
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Note Name</label>
+                        <input type="text" name="name"
+                               placeholder="e.g. Python basics PDF notes"
+                               value="{{ note.name|default:'' }}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Course</label>
+                        <select name="course" required {% if not courses %}disabled{% endif %}>
+                            <option value="">Select course</option>
+                            {% for course_item in courses %}
+                            <option value="{{ course_item.id }}" {% if note.course_id == course_item.id %}selected{% endif %}>
+                                {{ course_item.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group full">
+                        <label>Note File</label>
+                        <div class="file-input-wrapper">
+                            <input type="file" name="file" {% if not edit_mode %}required{% endif %}>
+                        </div>
+                        {% if edit_mode and note.file %}
+                        <div class="field-hint">
+                            Current file:
+                            <a href="{{ note.file.url }}" target="_blank" rel="noopener">{{ note.file.name|cut:"notes/" }}</a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="btn-row">
+                    <button type="submit" class="btn-primary" {% if not courses %}disabled{% endif %}>
+                        <i class="fa-solid {% if edit_mode %}fa-floppy-disk{% else %}fa-plus{% endif %}"></i>
+                        {% if edit_mode %}Update Note{% else %}Add Note{% endif %}
+                    </button>
+                    {% if edit_mode %}
+                    <a href="{% url 'notes_manage' %}" class="btn-secondary">Cancel</a>
+                    {% endif %}
+                </div>
+            </form>
+        </section>
+    </div>
+
+    <section class="card-box table-card">
+        <div class="table-card-header">
+            <div class="table-header-copy">
+                <div class="section-label">Notes Library</div>
+                <div class="table-card-title">
+                    <h3>All Notes</h3>
+                    <span class="table-count">{{ total_notes }}</span>
+                </div>
+                <p>Search note uploads, review course mapping and manage files from one place.</p>
+            </div>
+
+            <label class="search-box" for="notesSearch">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" placeholder="Search notes..." id="notesSearch">
+            </label>
+        </div>
+
+        {% if notes %}
+        <div class="table-scroll">
+            <table class="premium-table" id="notesTable">
+                <thead>
+                    <tr>
+                        <th>Note</th>
+                        <th>Course</th>
+                        <th>File</th>
+                        <th>Preview</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for n in notes %}
+                <tr>
+                    <td>
+                        <div class="note-cell">
+                            <div class="note-icon">
+                                <i class="fa-solid fa-file-lines"></i>
+                            </div>
+                            <div>
+                                <div class="course-title">{{ n.name }}</div>
+                                <div class="course-desc">Attached to {{ n.course.name }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="note-course-pill">{{ n.course.name }}</span>
+                    </td>
+                    <td>
+                        <div class="note-file-meta">{{ n.file.name|cut:"notes/" }}</div>
+                    </td>
+                    <td>
+                        <a href="{{ n.file.url }}" class="note-link" target="_blank" rel="noopener">
+                            <i class="fa-solid fa-up-right-from-square"></i>
+                            Open
+                        </a>
+                    </td>
+                    <td>
+                        <div class="actions-cell">
+                            <a href="?action=edit&pk={{ n.id }}" class="action edit" title="Edit">
+                                <i class="fa-solid fa-pen"></i>
+                            </a>
+                            <a href="?action=delete&pk={{ n.id }}"
+                               onclick="return confirmNoteDelete('{{ n.name|escapejs }}')"
+                               class="action delete" title="Delete">
+                                <i class="fa-solid fa-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <i class="fa-solid fa-file-lines"></i>
+            </div>
+            <h4>No notes yet</h4>
+            <p>Add your first note above and the library will populate here.</p>
+        </div>
+        {% endif %}
+    </section>
+</div>
+
+<script>
+const dateNode = document.getElementById('liveDate');
+if (dateNode) {
+    dateNode.textContent = new Date().toLocaleDateString('en-IN', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+}
+
+const notesSearchInput = document.getElementById('notesSearch');
+if (notesSearchInput) {
+    notesSearchInput.addEventListener('input', function () {
+        const query = this.value.toLowerCase();
+        document.querySelectorAll('#notesTable tbody tr').forEach((row) => {
+            const noteName = row.querySelector('.course-title')?.textContent.toLowerCase() || '';
+            const courseName = row.querySelector('.note-course-pill')?.textContent.toLowerCase() || '';
+            row.style.display = noteName.includes(query) || courseName.includes(query) ? '' : 'none';
+        });
+    });
+}
+
+function confirmNoteDelete(noteName) {
+    return window.confirm(
+        `Delete "${noteName}"?\n\nThis will permanently remove the note entry from the admin panel.`
+    );
+}
+</script>
+
+{% endblock %}

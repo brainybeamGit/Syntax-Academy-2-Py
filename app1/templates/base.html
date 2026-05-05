@@ -1,0 +1,207 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Syntax Academy{% endblock %}</title>
+
+    <link rel="icon" type="image/png" href="{% static 'img/logo.png' %}">
+
+    <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+            rel="stylesheet">
+
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+        <!-- Google Font -->
+        <link
+            href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap"
+            rel="stylesheet">
+        <link rel="stylesheet" href="{% static 'css/style.css' %}">
+        
+
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg fixed-top">
+            <div class="container">
+                <a class="navbar-brand brand-logo" href="{% url 'index' %}">
+                    <i class="bi bi-code-slash brand-icon"></i>
+                    <span class="brand-syntax">Syntax</span>
+                    <span class="brand-academy">Academy</span>
+                </a>
+
+                <button class="navbar-toggler bg-light"
+                    data-bs-toggle="collapse" data-bs-target="#menu"></button>
+
+                <div class="collapse navbar-collapse" id="menu">
+                    <ul class="navbar-nav ms-auto align-items-center">
+                        <li class="nav-item"><a class="nav-link text-light"
+                                href="{% url 'index' %}">Home</a></li>
+                        <li class="nav-item nav-dropdown">
+                            <button type="button" class="nav-link text-light dropdown-trigger">Courses</button>
+                            <div class="nav-dropdown-menu">
+                                <a href="{% url 'all_courses' %}">Explore Courses</a>
+                                <a href="{% url 'my_enrolls' %}">My Enrolls</a>
+                            </div>
+                        </li>
+                        <li class="nav-item"><a class="nav-link text-light"
+                                href="{% url 'contact' %}">Contact</a></li>
+                        <li class="nav-item"><a class="nav-link text-light"
+                                href="{% url 'faq' %}">FAQ</a></li>
+                        <li class="nav-item"><a class="nav-link text-light"
+                                href="{% url "about" %}">About</a></li>
+                        <!-- USER ICON -->
+                        <li class="nav-item ms-3">
+                            {% if login %}
+                                <a href="{% url 'profile' %}" class="user-icon">
+                                    <i class="bi bi-person-circle"></i>
+                                </a>
+                            {% else %}
+                                <a href="{% url 'login' %}" class="user-icon">
+                                    <i class="bi bi-person"></i>
+                                </a>
+                            {% endif %}
+                        </li>
+
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    
+        {% block content %}
+    
+        {% endblock content %}
+
+
+        <!-- FOOTER -->
+        {% block footer %}
+        <footer class="site-footer">
+
+            <div class="container footer-top">
+
+                <!-- Brand -->
+                <div class="footer-col brand">
+                    <h3>Syntax Academy</h3>
+                    <p>
+                        A beginner friendly platform to learn programming, build projects,
+                        and become job-ready without confusion.
+                    </p>
+
+                    <div class="socials">
+                        <a href="#"><i class="bi bi-instagram"></i></a>
+                        <a href="#"><i class="bi bi-youtube"></i></a>
+                        <a href="#"><i class="bi bi-github"></i></a>
+                        <a href="#"><i class="bi bi-discord"></i></a>
+                    </div>
+                </div>
+
+                <!-- Quick Links -->
+                <div class="footer-col">
+                    <h4>Platform</h4>
+                    <ul>
+                        <li><a href="{% url 'index' %}">Home</a></li>
+                        <li><a href="{% url 'about' %}">About</a></li>
+                        <li><a href="{% url 'faq' %}">FAQ</a></li>
+                        <li><a href="{% url 'contact' %}">Contact</a></li>
+                    </ul>
+                </div>
+
+
+                <!-- Contact -->
+                <div class="footer-col">
+                    <h4>Contact</h4>
+                    <ul class="contact">
+                        <li><i class="bi bi-envelope"></i> support@syntaxacademy.com</li>
+                        <li><i class="bi bi-geo-alt"></i> India</li>
+                        <li><i class="bi bi-clock"></i> Mon – Sat</li>
+                    </ul>
+                </div>
+
+                <!-- Beginner Guide -->
+                <div class="footer-col guide-box">
+                    <h4>New To Programming?</h4>
+                    <p>
+                        Start from absolute basics — no prior experience required.
+                        Follow our beginner friendly path and build real projects.
+                    </p>
+
+                    <a href="{% url 'all_courses' %}" class="footer-start-btn">
+                        Start Learning <i class="bi bi-arrow-right-short"></i>
+                    </a>
+                </div>
+
+                <div class="footer-copy">
+                    © 2026 <span>Syntax Academy</span>. All Rights Reserved.
+                </div>
+
+
+        </footer>
+        {% endblock %}
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const numericFields = document.querySelectorAll('input[data-numeric-only], textarea[data-numeric-only]');
+                const emailFields = document.querySelectorAll('input[type="email"]');
+                const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+                const sanitizeNumericValue = function (field) {
+                    const digitsOnly = field.value.replace(/\D+/g, '');
+                    const maxLength = field.maxLength > 0 ? field.maxLength : null;
+                    field.value = maxLength ? digitsOnly.slice(0, maxLength) : digitsOnly;
+                };
+
+                const validateEmailValue = function (field) {
+                    field.value = field.value.replace(/\s+/g, '');
+
+                    if (!field.value) {
+                        field.setCustomValidity('');
+                        return;
+                    }
+
+                    field.setCustomValidity(
+                        emailPattern.test(field.value) ? '' : 'Enter a valid email address.'
+                    );
+                };
+
+                numericFields.forEach(function (field) {
+                    field.addEventListener('input', function () {
+                        sanitizeNumericValue(field);
+                    });
+
+                    field.addEventListener('keydown', function (event) {
+                        const allowedKeys = [
+                            'Backspace', 'Delete', 'Tab', 'Enter', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'
+                        ];
+
+                        if (allowedKeys.includes(event.key) || event.ctrlKey || event.metaKey) {
+                            return;
+                        }
+
+                        if (event.key.length === 1 && !/\d/.test(event.key)) {
+                            event.preventDefault();
+                        }
+                    });
+
+                    sanitizeNumericValue(field);
+                });
+
+                emailFields.forEach(function (field) {
+                    field.addEventListener('input', function () {
+                        validateEmailValue(field);
+                    });
+
+                    field.addEventListener('blur', function () {
+                        validateEmailValue(field);
+                    });
+
+                    validateEmailValue(field);
+                });
+            });
+        </script>
+
+</body>
+</html>

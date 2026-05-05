@@ -1,0 +1,246 @@
+{% extends "adminpanel/base.html" %}
+{% load static %}
+
+{% block page_title %}Contact Messages{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'adminpanel/contacts.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="contacts-page">
+    <div class="dashboard-header contacts-dashboard-header">
+        <div class="dashboard-header-inner">
+            <div>
+                <div class="dashboard-title"><h1>Contact Messages</h1></div>
+                <div class="dashboard-subtitle">
+                    <div class="dashboard-dot"></div>
+                    Review incoming learner messages and remove handled conversations.
+                </div>
+            </div>
+
+            <div class="dashboard-meta">
+                <div class="dashboard-date">
+                    <i class="fa-regular fa-calendar"></i>
+                    <span id="liveDate"></span>
+                </div>
+
+                <div class="dashboard-admin-panel">
+                    <div class="dashboard-admin-copy">
+                        <span class="dashboard-admin-name">
+                            {% firstof request.user.get_full_name request.user.username "Admin" %}
+                        </span>
+                    </div>
+                    <a href="{% url 'admin_logout' %}" class="dashboard-logout">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                        Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <section class="contacts-table-panel">
+        {% if reply_success %}
+        <div class="contact-alert success">Reply email sent successfully.</div>
+        {% endif %}
+
+        <div class="contacts-table-header">
+            <div>
+                <div class="panel-label">Inbox</div>
+                <div class="contact-directory-title">
+                    <h3>Latest contact messages</h3>
+                    <span class="contact-directory-count" id="contactVisibleCount">{{ total_contacts }}</span>
+                </div>
+                <p>Search by name, email, or message text to review conversations faster.</p>
+            </div>
+
+            <label class="contact-search" for="contactSearch">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="contactSearch" placeholder="Search messages...">
+            </label>
+        </div>
+
+        {% if contacts %}
+        <div class="table-scroll">
+            <table class="contacts-table">
+                <thead>
+                    <tr>
+                        <th>Sender</th>
+                        <th>Email</th>
+                        <th>Message</th>
+                        <th>Received</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for item in contacts %}
+                    <tr data-contact-row data-contact-id="{{ item.id }}">
+                        <td>
+                            <div class="contact-sender-cell">
+                                <div class="contact-avatar">{{ item.name|slice:":1"|upper }}</div>
+                                <div class="contact-sender-name">{{ item.name }}</div>
+                            </div>
+                        </td>
+
+                        <td>
+                            <div class="contact-email">{{ item.email }}</div>
+                        </td>
+
+                        <td>
+                            <div class="contact-message">{{ item.message }}</div>
+                        </td>
+
+                        <td>
+                            <div class="contact-date">{{ item.created_at|date:"d M Y" }}</div>
+                            <div class="contact-subtext">{{ item.created_at|date:"h:i A" }}</div>
+                        </td>
+
+                        <td>
+                            <div class="actions-cell">
+                                <button type="button"
+                                        class="action reply"
+                                        onclick="toggleReplyRow('{{ item.id }}')"
+                                        title="Reply by email">
+                                    <i class="fa-solid fa-reply"></i>
+                                </button>
+                                <a href="?action=delete&pk={{ item.id }}"
+                                   onclick="return confirmDelete('{{ item.name|escapejs }}')"
+                                   class="action delete"
+                                   title="Delete message">
+                                    <i class="fa-solid fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr id="reply-{{ item.id }}" class="contact-reply-row" {% if reply_contact_id != item.id|stringformat:"s" %}hidden{% endif %}>
+                        <td colspan="5">
+                            <div class="contact-reply-panel">
+                                <div class="contact-reply-header">
+                                    <div>
+                                        <div class="contact-reply-title">Reply to {{ item.name }}</div>
+                                        <div class="contact-subtext">{{ item.email }}</div>
+                                    </div>
+                                </div>
+
+                                {% if reply_error and reply_contact_id == item.id|stringformat:"s" %}
+                                <div class="contact-alert error">{{ reply_error }}</div>
+                                {% endif %}
+
+                                <form method="post" class="contact-reply-form">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="contact_id" value="{{ item.id }}">
+
+                                    <div class="contact-reply-group">
+                                        <label for="subject-{{ item.id }}">Subject</label>
+                                        <input id="subject-{{ item.id }}"
+                                               type="text"
+                                               name="subject"
+                                               value="{% if reply_contact_id == item.id|stringformat:'s' %}{{ reply_subject }}{% else %}Reply from Syntax Academy{% endif %}"
+                                               required>
+                                    </div>
+
+                                    <div class="contact-reply-group">
+                                        <label for="reply-{{ item.id }}-message">Reply Message</label>
+                                        <textarea id="reply-{{ item.id }}-message"
+                                                  name="reply_message"
+                                                  rows="5"
+                                                  required>{% if reply_contact_id == item.id|stringformat:"s" %}{{ reply_body }}{% endif %}</textarea>
+                                    </div>
+
+                                    <div class="contact-reply-actions">
+                                        <button type="submit" class="contact-reply-btn">
+                                            <i class="fa-solid fa-paper-plane"></i>
+                                            Send Reply
+                                        </button>
+                                        <button type="button" class="contact-cancel-btn" onclick="toggleReplyRow('{{ item.id }}', true)">
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-contacts-state">
+            <i class="fa-solid fa-envelope"></i>
+            <h4>No messages yet</h4>
+            <p>New contact form submissions will appear here.</p>
+        </div>
+        {% endif %}
+    </section>
+</div>
+
+<script>
+const dateNode = document.getElementById('liveDate');
+if (dateNode) {
+    dateNode.textContent = new Date().toLocaleDateString('en-IN', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+}
+
+const contactSearchInput = document.getElementById('contactSearch');
+const contactVisibleCount = document.getElementById('contactVisibleCount');
+
+function applyContactFilters() {
+    const query = contactSearchInput ? contactSearchInput.value.toLowerCase() : '';
+    let visibleCount = 0;
+
+    document.querySelectorAll('[data-contact-row]').forEach((row) => {
+        const text = row.textContent.toLowerCase();
+        const isVisible = text.includes(query);
+        const replyRow = document.getElementById(`reply-${row.dataset.contactId}`);
+
+        row.style.display = isVisible ? '' : 'none';
+        if (!isVisible && replyRow) {
+            replyRow.hidden = true;
+        }
+        if (isVisible) {
+            visibleCount += 1;
+        }
+    });
+
+    if (contactVisibleCount) {
+        contactVisibleCount.textContent = visibleCount;
+    }
+}
+
+if (contactSearchInput) {
+    contactSearchInput.addEventListener('input', applyContactFilters);
+}
+
+function toggleReplyRow(contactId, forceClose = false) {
+    const replyRow = document.getElementById(`reply-${contactId}`);
+    if (!replyRow) {
+        return;
+    }
+
+    if (forceClose) {
+        replyRow.hidden = true;
+        return;
+    }
+
+    document.querySelectorAll('.contact-reply-row').forEach((row) => {
+        if (row.id !== `reply-${contactId}`) {
+            row.hidden = true;
+        }
+    });
+
+    replyRow.hidden = !replyRow.hidden;
+}
+
+function confirmDelete(name) {
+    return confirm(`Delete message from "${name}"?\n\nThis action cannot be undone.`);
+}
+
+applyContactFilters();
+</script>
+{% endblock %}

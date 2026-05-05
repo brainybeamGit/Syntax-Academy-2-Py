@@ -1,0 +1,193 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Syntax Academy Admin</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="{% static 'adminpanel/style.css' %}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    {% block extra_css %}{% endblock %}
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+
+<div class="sidebar">
+    <a class="navbar-brand brand-logo" href="{% url 'index' %}">
+        <i class="bi bi-code-slash brand-icon"></i>
+        <span class="brand-syntax">Syntax</span>
+        <span class="brand-academy">Academy</span>
+    </a>
+
+    <ul class="nav-links">
+
+        <!-- Dashboard -->
+        <li>
+            <a href="{% url 'dashboard_home' %}" class="{% if request.resolver_match.url_name == 'dashboard_home' %}active{% endif %}">
+                <i class="fa-solid fa-chart-line"></i>
+                Dashboard
+            </a>
+        </li>
+
+        <!-- Course Management -->
+        <li class="nav-section">Course Management</li>
+
+        <li>
+            <a href="{% url 'course_manage' %}" class="{% if request.resolver_match.url_name == 'course_manage' %}active{% endif %}">
+                <i class="fa-solid fa-book-open"></i>
+                Courses
+            </a>
+        </li>
+
+        <li>
+            <a href="{% url 'lesson_manage' %}" class="{% if request.resolver_match.url_name == 'lesson_manage' %}active{% endif %}">
+                <i class="fa-solid fa-video"></i>
+                Lessons
+            </a>
+        </li>
+
+        <li>
+            <a href="{% url 'notes_manage' %}" class="{% if request.resolver_match.url_name == 'notes_manage' %}active{% endif %}">
+                <i class="fa-solid fa-file-lines"></i>
+                Notes
+            </a>
+        </li>
+
+        <li>
+            <a href="{% url 'review_manage' %}" class="{% if request.resolver_match.url_name == 'review_manage' %}active{% endif %}">
+                <i class="fa-solid fa-star"></i>
+                Reviews
+            </a>
+        </li>
+
+        <li>
+            <a href="{% url 'comments_manage' %}" class="{% if request.resolver_match.url_name == 'comments_manage' %}active{% endif %}">
+                <i class="fa-solid fa-comments"></i>
+                Comments & Replies
+            </a>
+        </li>
+
+        <!-- Student Management -->
+        <li class="nav-section">Student Management</li>
+
+        <li>
+            <a href="{% url 'students_manage' %}" class="{% if request.resolver_match.url_name == 'students_manage' %}active{% endif %}">
+                <i class="fa-solid fa-user-graduate"></i>
+                Students
+            </a>
+        </li>
+
+        <li>
+            <a href="{% url 'enrollments_manage' %}" class="{% if request.resolver_match.url_name == 'enrollments_manage' %}active{% endif %}">
+                <i class="fa-solid fa-clipboard-list"></i>
+                Enrollments
+            </a>
+        </li>
+
+
+        <!-- Quiz System -->
+        <li class="nav-section">Quiz System</li>
+
+        <li>
+            <a href="{% url 'quiz_manage' %}" class="{% if request.resolver_match.url_name == 'quiz_manage' %}active{% endif %}">
+                <i class="fa-solid fa-brain"></i>
+                Quizzes
+            </a>
+        </li>
+
+
+        <li>
+            <a href="{% url 'results_manage' %}" class="{% if request.resolver_match.url_name == 'results_manage' %}active{% endif %}">
+                <i class="fa-solid fa-chart-column"></i>
+                Results
+            </a>
+        </li>
+
+        <!-- Other -->
+        <li class="nav-section">Other</li>
+
+        <li>
+            <a href="{% url 'contacts_manage' %}" class="{% if request.resolver_match.url_name == 'contacts_manage' %}active{% endif %}">
+                <i class="fa-solid fa-envelope"></i>
+                Contact Messages
+            </a>
+        </li>
+
+    </ul>
+</div>
+
+<div class="main">
+
+    <div class="topbar">
+        <h2>{% block page_title %}{% endblock %}</h2>
+    </div>
+
+    {% block content %}
+    {% endblock %}
+
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const numericFields = document.querySelectorAll('input[data-numeric-only], textarea[data-numeric-only]');
+        const emailFields = document.querySelectorAll('input[type="email"]');
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+        const sanitizeNumericValue = function (field) {
+            const digitsOnly = field.value.replace(/\D+/g, '');
+            const maxLength = field.maxLength > 0 ? field.maxLength : null;
+            field.value = maxLength ? digitsOnly.slice(0, maxLength) : digitsOnly;
+        };
+
+        const validateEmailValue = function (field) {
+            field.value = field.value.replace(/\s+/g, '');
+
+            if (!field.value) {
+                field.setCustomValidity('');
+                return;
+            }
+
+            field.setCustomValidity(
+                emailPattern.test(field.value) ? '' : 'Enter a valid email address.'
+            );
+        };
+
+        numericFields.forEach(function (field) {
+            field.addEventListener('input', function () {
+                sanitizeNumericValue(field);
+            });
+
+            field.addEventListener('keydown', function (event) {
+                const allowedKeys = [
+                    'Backspace', 'Delete', 'Tab', 'Enter', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'
+                ];
+
+                if (allowedKeys.includes(event.key) || event.ctrlKey || event.metaKey) {
+                    return;
+                }
+
+                if (event.key.length === 1 && !/\d/.test(event.key)) {
+                    event.preventDefault();
+                }
+            });
+
+            sanitizeNumericValue(field);
+        });
+
+        emailFields.forEach(function (field) {
+            field.addEventListener('input', function () {
+                validateEmailValue(field);
+            });
+
+            field.addEventListener('blur', function () {
+                validateEmailValue(field);
+            });
+
+            validateEmailValue(field);
+        });
+    });
+</script>
+
+</body>
+</html>

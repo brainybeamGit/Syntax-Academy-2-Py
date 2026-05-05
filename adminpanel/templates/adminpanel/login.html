@@ -1,0 +1,291 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login | Syntax Academy</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        body{
+            margin:0;
+        }
+
+        .auth-page{
+            min-height:calc(100vh - 72px);
+            background:
+                radial-gradient(rgba(148,163,184,0.08) 1px, transparent 1px);
+            background-size:20px 20px;
+            background-color:#020617;
+            color:#e5e7eb;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            padding:40px 16px;
+            font-family:'Poppins',sans-serif;
+        }
+
+        .login-card{
+            width:420px;
+            max-width:100%;
+            background:linear-gradient(
+                180deg,
+                rgba(15,23,42,0.96),
+                rgba(2,6,23,0.96)
+            );
+            border-radius:18px;
+            padding:38px;
+            border:1px solid rgba(108,242,194,0.18);
+            box-shadow:0 20px 40px rgba(0,0,0,0.45);
+        }
+
+        .login-title{
+            text-align:center;
+            font-weight:600;
+            font-size:22px;
+            margin-bottom:28px;
+            background:linear-gradient(90deg, #6cf2c2, #6aa8ff);
+            -webkit-background-clip:text;
+            background-clip:text;
+            -webkit-text-fill-color:transparent;
+        }
+
+        .login-subtitle{
+            margin:0 0 34px;
+            text-align:center;
+            color:#94a3b8;
+            font-size:13px;
+            line-height:1.7;
+        }
+
+        .auth-field{
+            position:relative;
+            display:flex;
+            align-items:center;
+            gap:12px;
+            width:100%;
+            padding:0 0 12px;
+            margin-bottom:22px;
+            border-bottom:1px solid rgba(255,255,255,0.15);
+        }
+
+        .auth-icon{
+            flex:0 0 22px;
+            color:#49a4ff;
+            font-size:18px;
+            line-height:1;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+        }
+
+        .auth-input{
+            width:100%;
+            min-width:0;
+            background:transparent;
+            border:none;
+            outline:none;
+            box-shadow:none;
+            color:#ffffff;
+            padding:0;
+            font-size:14px;
+            line-height:1.4;
+        }
+
+        .auth-input::placeholder{
+            color:#64748b;
+        }
+
+        .auth-input:focus{
+            outline:none;
+            box-shadow:none;
+        }
+
+        .password-toggle{
+            position:absolute;
+            right:6px;
+            top:50%;
+            transform:translateY(-50%);
+            color:#49a4ff;
+            font-size:18px;
+            cursor:pointer;
+            display:none;
+            z-index:5;
+            transition:0.25s ease;
+            width:20px;
+            height:20px;
+            align-items:center;
+            justify-content:center;
+        }
+
+        .password-visible .password-toggle{
+            display:flex;
+        }
+
+        .auth-field.password-field{
+            padding-right:40px;
+        }
+
+        .auth-input[type="password"]::-ms-reveal,
+        .auth-input[type="password"]::-ms-clear{
+            display:none;
+        }
+
+        .auth-input[type="password"]::-webkit-credentials-auto-fill-button{
+            visibility:hidden;
+            display:none !important;
+            pointer-events:none;
+            position:absolute;
+            right:0;
+        }
+
+        .login-btn{
+            width:100%;
+            margin-top:14px;
+            background:linear-gradient(90deg, #6cf2c2, #6aa8ff);
+            border:none;
+            border-radius:50px;
+            padding:12px;
+            font-weight:600;
+            font-size:15px;
+            color:#0b0f1a;
+            transition:all 0.35s ease;
+            box-shadow:0 4px 12px rgba(108, 242, 194, 0.25);
+            position:relative;
+            overflow:hidden;
+        }
+
+        .login-btn:hover{
+            transform:translateY(-1px);
+            box-shadow:
+                0 6px 18px rgba(108, 242, 194, 0.35),
+                0 0 0 1px rgba(108, 242, 194, 0.25);
+        }
+
+        .login-links{
+            margin-top:24px;
+            display:flex;
+            justify-content:center;
+            font-size:13px;
+        }
+
+        .login-links a{
+            color:#6cf2c2;
+            text-decoration:none;
+            transition:0.25s ease;
+        }
+
+        .login-links a:hover{
+            color:#6aa8ff;
+        }
+
+        .error-box{
+            margin-bottom:18px;
+            padding:10px 14px;
+            border-radius:12px;
+            background:rgba(239,68,68,.08);
+            border:1px solid rgba(239,68,68,.16);
+            color:#fecaca;
+            font-size:13px;
+            text-align:center;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg fixed-top">
+        <div class="container">
+            <a class="navbar-brand brand-logo" href="{% url 'index' %}">
+                <i class="bi bi-code-slash brand-icon"></i>
+                <span class="brand-syntax">Syntax</span>
+                <span class="brand-academy">Academy</span>
+            </a>
+
+            <button class="navbar-toggler bg-light" data-bs-toggle="collapse" data-bs-target="#menu"></button>
+
+            <div class="collapse navbar-collapse" id="menu">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item"><a class="nav-link text-light" href="{% url 'index' %}">Home</a></li>
+                    <li class="nav-item nav-dropdown">
+                        <button type="button" class="nav-link text-light dropdown-trigger">Courses</button>
+                        <div class="nav-dropdown-menu">
+                            <a href="{% url 'all_courses' %}">Explore Courses</a>
+                            <a href="{% url 'my_enrolls' %}">My Enrolls</a>
+                        </div>
+                    </li>
+                    <li class="nav-item"><a class="nav-link text-light" href="{% url 'contact' %}">Contact</a></li>
+                    <li class="nav-item"><a class="nav-link text-light" href="{% url 'faq' %}">FAQ</a></li>
+                    <li class="nav-item"><a class="nav-link text-light" href="{% url 'about' %}">About</a></li>
+                    <li class="nav-item ms-3">
+                        <a href="{% url 'login' %}" class="user-icon">
+                            <i class="bi bi-person"></i>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="auth-page">
+        <div class="login-card">
+            <h4 class="login-title">Admin Login</h4>
+
+            {% if error %}
+                <div class="error-box">{{ error }}</div>
+            {% endif %}
+
+            <form method="post">
+                {% csrf_token %}
+
+                <div class="auth-field">
+                    <span class="auth-icon"><i class="bi bi-person"></i></span>
+                    <input type="text" name="username" class="auth-input" placeholder="Username" required>
+                </div>
+
+                <div class="auth-field password-field" id="password-group">
+                    <span class="auth-icon"><i class="bi bi-lock"></i></span>
+                    <input type="password" id="password" name="password" class="auth-input" placeholder="Password" required oninput="handlePasswordInput()">
+                    <i class="bi bi-eye password-toggle" onclick="togglePassword()"></i>
+                </div>
+
+                <button type="submit" class="btn login-btn w-100">
+                    Login
+                </button>
+            </form>
+
+            <div class="login-links">
+                <a href="{% url 'login' %}">Back to Student Login</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function handlePasswordInput() {
+            const group = document.getElementById("password-group");
+            const password = document.getElementById("password");
+
+            if (password.value.length > 0) {
+                group.classList.add("password-visible");
+            } else {
+                group.classList.remove("password-visible");
+            }
+        }
+
+        function togglePassword() {
+            const password = document.getElementById("password");
+            const icon = document.querySelector(".password-toggle");
+
+            if (password.type === "password") {
+                password.type = "text";
+                icon.classList.replace("bi-eye", "bi-eye-slash");
+            } else {
+                password.type = "password";
+                icon.classList.replace("bi-eye-slash", "bi-eye");
+            }
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

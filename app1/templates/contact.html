@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- HERO -->
+<section class="contact-hero">
+    <div class="container text-center">
+        <h1 class="hero-title">
+            Let's Build Something 
+            <span class="gradient-text">Amazing</span>
+        </h1>
+        <p class="hero-sub">
+            Have questions about courses, enrollments or collaboration? 
+            We’d love to hear from you.
+        </p>
+    </div>
+</section>
+
+<!-- MAIN SECTION -->
+<section class="contact-section">
+    <div class="container">
+        <div class="row g-4 align-items-start">
+
+            <!-- LEFT SIDE -->
+            <div class="col-lg-5">
+                <div class="info-card">
+                    <div class="icon-circle"><i class="fas fa-envelope"></i></div>
+                    <div>
+                        <h5>Email Us</h5>
+                        <p>support@syntaxacademy.com</p>
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <div class="icon-circle"><i class="fas fa-phone-alt"></i></div>
+                    <div>
+                        <h5>Call Us</h5>
+                        <p>+91 98765 43210</p>
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <div class="icon-circle"><i class="fas fa-map-marker-alt"></i></div>
+                    <div>
+                        <h5>Location</h5>
+                        <p>Ahmedabad, India</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT SIDE FORM -->
+            <div class="col-lg-7">
+                <div class="premium-form-card">
+
+                    <form method="POST">
+                        {% csrf_token %}
+
+                        <div class="input-group">
+                            <i class="fas fa-user"></i>
+                            <input type="text" name="name" placeholder="Your Name" required>
+                        </div>
+
+                        <div class="input-group">
+                            <i class="fas fa-envelope"></i>
+                            <input type="email" name="email" placeholder="Email Address" required>
+                        </div>
+
+                        <div class="input-group textarea-group">
+                            <i class="fas fa-comment-dots"></i>
+                            <textarea name="message" rows="4" placeholder="Your Message" required></textarea>
+                        </div>
+
+                        <button type="submit" class="premium-btn">
+                            Send Message
+                        </button>
+                    </form>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+
+{% if success %}
+<div class="toast-success" id="toastSuccess">
+    <div class="toast-icon">
+        <i class="fas fa-check"></i>
+    </div>
+    <div class="toast-text">
+        Message Sent Successfully
+    </div>
+</div>
+{% endif %}
+
+
+<script>
+setTimeout(function(){
+    const toast = document.getElementById("toastSuccess");
+    if(toast){
+        toast.style.transition = "all 0.4s ease";
+        toast.style.transform = "translateX(120%)";
+        toast.style.opacity = "0";
+        setTimeout(() => toast.remove(), 400);
+    }
+}, 3000);
+</script>
+
+<script>
+    if (window.location.search.includes("sent=true")) {
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+</script>
+
+{% endblock %}

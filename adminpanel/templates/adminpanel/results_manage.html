@@ -1,0 +1,214 @@
+{% extends "adminpanel/base.html" %}
+{% load static %}
+
+{% block page_title %}Results{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'adminpanel/results.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="results-page">
+    <div class="dashboard-header results-dashboard-header">
+        <div class="dashboard-header-inner">
+            <div>
+                <div class="dashboard-title"><h1>Quiz Results</h1></div>
+                <div class="dashboard-subtitle">
+                    <div class="dashboard-dot"></div>
+                    Track learner attempts, scores, and pass status across every course quiz.
+                </div>
+            </div>
+
+            <div class="dashboard-meta">
+                <div class="dashboard-date">
+                    <i class="fa-regular fa-calendar"></i>
+                    <span id="liveDate"></span>
+                </div>
+
+                <div class="dashboard-admin-panel">
+                    <div class="dashboard-admin-copy">
+                        <span class="dashboard-admin-name">
+                            {% firstof request.user.get_full_name request.user.username "Admin" %}
+                        </span>
+                    </div>
+                    <a href="{% url 'admin_logout' %}" class="dashboard-logout">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                        Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <section class="results-table-panel">
+        <div class="results-table-header">
+            <div>
+                <div class="panel-label">Result Directory</div>
+                <div class="result-directory-title">
+                    <h3>Student quiz attempts</h3>
+                    <span class="result-directory-count" id="resultVisibleCount">{{ total_attempts }}</span>
+                </div>
+                <p>Search by learner, quiz, or course, then filter by level to review attempts faster.</p>
+            </div>
+
+            <label class="result-search" for="resultSearch">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="resultSearch" placeholder="Search results...">
+            </label>
+        </div>
+
+        <div class="result-filter-bar">
+            <div class="result-filter-group">
+                <button type="button" class="result-filter-chip active" data-level-filter="all">
+                    <span>All</span>
+                    <strong>{{ total_attempts }}</strong>
+                </button>
+                {% for level in level_breakdown %}
+                <button type="button" class="result-filter-chip" data-level-filter="{{ level.code }}">
+                    <span>{{ level.label }}</span>
+                    <strong>{{ level.total }}</strong>
+                </button>
+                {% endfor %}
+            </div>
+        </div>
+
+        {% if results %}
+        <div class="table-scroll">
+            <table class="results-table">
+                <thead>
+                    <tr>
+                        <th>Learner</th>
+                        <th>Quiz</th>
+                        <th>Course</th>
+                        <th>Level</th>
+                        <th>Score</th>
+                        <th>Status</th>
+                        <th>Submitted</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for result in results %}
+                    <tr data-result-row data-level="{{ result.level_code }}">
+                        <td>
+                            <div class="result-learner-cell">
+                                <div class="result-avatar">{{ result.user_email|slice:":1"|upper }}</div>
+                                <div>
+                                    <div class="result-learner-name">{{ result.user_email }}</div>
+                                    <div class="result-subtext">Quiz attempt</div>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td>
+                            <div class="result-quiz-name">{{ result.quiz.title }}</div>
+                        </td>
+
+                        <td>
+                            <div class="result-course-name">{{ result.quiz.course.name }}</div>
+                        </td>
+
+                        <td>
+                            <span class="level-badge {{ result.level_code }}">{{ result.level_label }}</span>
+                        </td>
+
+                        <td>
+                            <div class="result-score">{{ result.score }} / {{ result.total }}</div>
+                            <div class="result-subtext">{{ result.percentage }}%</div>
+                        </td>
+
+                        <td>
+                            <span class="status-badge {% if result.passed %}passed{% else %}failed{% endif %}">
+                                {% if result.passed %}Passed{% else %}Failed{% endif %}
+                            </span>
+                        </td>
+
+                        <td>
+                            <div class="result-date">{{ result.submitted_at|date:"d M Y" }}</div>
+                            <div class="result-subtext">{{ result.submitted_at|date:"h:i A" }}</div>
+                        </td>
+
+                        <td>
+                            <div class="actions-cell">
+                                <a href="?action=delete&pk={{ result.id }}"
+                                   onclick="return confirmDelete('{{ result.user_email|escapejs }}', '{{ result.quiz.title|escapejs }}')"
+                                   class="action delete"
+                                   title="Delete result">
+                                    <i class="fa-solid fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-results-state">
+            <i class="fa-solid fa-chart-column"></i>
+            <h4>No results yet</h4>
+            <p>Once learners submit quizzes, their scores will appear here.</p>
+        </div>
+        {% endif %}
+    </section>
+</div>
+
+<script>
+const dateNode = document.getElementById('liveDate');
+if (dateNode) {
+    dateNode.textContent = new Date().toLocaleDateString('en-IN', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+}
+
+const resultSearchInput = document.getElementById('resultSearch');
+const resultFilterButtons = document.querySelectorAll('[data-level-filter]');
+const resultVisibleCount = document.getElementById('resultVisibleCount');
+let activeLevelFilter = 'all';
+
+function applyResultFilters() {
+    const query = resultSearchInput ? resultSearchInput.value.toLowerCase() : '';
+    let visibleCount = 0;
+
+    document.querySelectorAll('[data-result-row]').forEach((row) => {
+        const text = row.textContent.toLowerCase();
+        const rowLevel = row.dataset.level;
+        const matchesSearch = text.includes(query);
+        const matchesLevel = activeLevelFilter === 'all' || rowLevel === activeLevelFilter;
+        const isVisible = matchesSearch && matchesLevel;
+
+        row.style.display = isVisible ? '' : 'none';
+        if (isVisible) {
+            visibleCount += 1;
+        }
+    });
+
+    if (resultVisibleCount) {
+        resultVisibleCount.textContent = visibleCount;
+    }
+}
+
+if (resultSearchInput) {
+    resultSearchInput.addEventListener('input', applyResultFilters);
+}
+
+resultFilterButtons.forEach((button) => {
+    button.addEventListener('click', function () {
+        activeLevelFilter = this.dataset.levelFilter;
+        resultFilterButtons.forEach((chip) => chip.classList.remove('active'));
+        this.classList.add('active');
+        applyResultFilters();
+    });
+});
+
+function confirmDelete(email, quiz) {
+    return confirm(`Delete result for "${email}" in "${quiz}"?\n\nThis action cannot be undone.`);
+}
+
+applyResultFilters();
+</script>
+{% endblock %}

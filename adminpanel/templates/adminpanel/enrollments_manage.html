@@ -1,0 +1,256 @@
+{% extends "adminpanel/base.html" %}
+{% load static %}
+
+{% block page_title %}Enrollments{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'adminpanel/enrollments.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="enrollments-page">
+    <div class="dashboard-header enrollments-dashboard-header">
+        <div class="dashboard-header-inner">
+            <div>
+                <div class="dashboard-title"><h1>Enrollment Management</h1></div>
+                <div class="dashboard-subtitle">
+                    <div class="dashboard-dot"></div>
+                    Track student-course joins, payment coverage, and course demand from one clean admin page.
+                </div>
+            </div>
+
+            <div class="dashboard-meta">
+                <div class="dashboard-date">
+                    <i class="fa-regular fa-calendar"></i>
+                    <span id="liveDate"></span>
+                </div>
+
+                <div class="dashboard-admin-panel">
+                    <div class="dashboard-admin-copy">
+                        <span class="dashboard-admin-name">
+                            {% firstof request.user.get_full_name request.user.username "Admin" %}
+                        </span>
+                    </div>
+                    <a href="{% url 'admin_logout' %}" class="dashboard-logout">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                        Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <section class="enrollment-metric-grid">
+        <article class="enrollment-metric-card">
+            <div class="enrollment-metric-icon">
+                <i class="fa-solid fa-clipboard-list"></i>
+            </div>
+            <div>
+                <div class="enrollment-metric-value">{{ total_enrollments }}</div>
+                <div class="enrollment-metric-label">Total Enrollments</div>
+            </div>
+        </article>
+
+        <article class="enrollment-metric-card blue">
+            <div class="enrollment-metric-icon blue">
+                <i class="fa-solid fa-user-group"></i>
+            </div>
+            <div>
+                <div class="enrollment-metric-value">{{ active_students }}</div>
+                <div class="enrollment-metric-label">Active Students</div>
+            </div>
+        </article>
+
+        <article class="enrollment-metric-card gold">
+            <div class="enrollment-metric-icon gold">
+                <i class="fa-solid fa-book"></i>
+            </div>
+            <div>
+                <div class="enrollment-metric-value">{{ active_courses }}</div>
+                <div class="enrollment-metric-label">Active Courses</div>
+            </div>
+        </article>
+
+        <article class="enrollment-metric-card violet">
+            <div class="enrollment-metric-icon violet">
+                <i class="fa-solid fa-indian-rupee-sign"></i>
+            </div>
+            <div>
+                <div class="enrollment-metric-value">&#8377;{{ total_revenue }}</div>
+                <div class="enrollment-metric-label">Enrollment Revenue</div>
+            </div>
+        </article>
+    </section>
+
+    <section class="enrollments-table-panel">
+        <div class="enrollments-table-header">
+            <div>
+                <div class="panel-label">Enrollment Directory</div>
+                <div class="enrollment-directory-title">
+                    <h3>Student-course enrollments</h3>
+                    <span class="enrollment-directory-count" id="enrollmentVisibleCount">{{ total_enrollments }}</span>
+                </div>
+                <p>Search by student or course, then filter by course level to review enrollments faster.</p>
+            </div>
+
+            <label class="enrollment-search" for="enrollmentSearch">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="enrollmentSearch" placeholder="Search enrollments...">
+            </label>
+        </div>
+
+        <div class="enrollment-filter-bar">
+            <div class="enrollment-filter-group">
+                <button type="button" class="enrollment-filter-chip active" data-level-filter="all">
+                    <span>All</span>
+                    <strong>{{ total_enrollments }}</strong>
+                </button>
+                {% for level in level_breakdown %}
+                <button type="button" class="enrollment-filter-chip" data-level-filter="{{ level.code }}">
+                    <span>{{ level.label }}</span>
+                    <strong>{{ level.total }}</strong>
+                </button>
+                {% endfor %}
+            </div>
+
+            <div class="enrollment-average-chip">
+                Avg Order Value
+                <strong>&#8377;{{ average_order_value }}</strong>
+            </div>
+        </div>
+
+        {% if enrollments %}
+        <div class="table-scroll">
+            <table class="enrollments-table">
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Course</th>
+                        <th>Level</th>
+                        <th>Enrolled On</th>
+                        <th>Payment</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for enrollment in enrollments %}
+                    <tr data-enrollment-row data-level="{{ enrollment.level_code }}">
+                        <td>
+                            <div class="enrollment-student-cell">
+                                <div class="enrollment-avatar">{{ enrollment.user.name|slice:":1"|upper }}</div>
+                                <div>
+                                    <div class="enrollment-student-name">{{ enrollment.user.name }}</div>
+                                    <div class="enrollment-subtext">{{ enrollment.user.email }}</div>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td>
+                            <div class="enrollment-course-name">{{ enrollment.course.name }}</div>
+                            <div class="enrollment-subtext">{{ enrollment.course.duration_weeks }} week{{ enrollment.course.duration_weeks|pluralize }}</div>
+                        </td>
+
+                        <td>
+                            <span class="level-badge {{ enrollment.level_code }}">{{ enrollment.level_label }}</span>
+                        </td>
+
+                        <td>
+                            <div class="enrollment-date">{{ enrollment.enrolled_at|date:"d M Y" }}</div>
+                            <div class="enrollment-subtext">{{ enrollment.enrolled_at|date:"h:i A" }}</div>
+                        </td>
+
+                        <td>
+                            <div class="enrollment-payment">&#8377;{{ enrollment.payment_total }}</div>
+                            <div class="enrollment-subtext">
+                                {% if enrollment.payment_total %}
+                                Payment recorded
+                                {% else %}
+                                Payment pending
+                                {% endif %}
+                            </div>
+                        </td>
+
+                        <td>
+                            <div class="actions-cell">
+                                <a href="?action=delete&pk={{ enrollment.id }}"
+                                   onclick="return confirmDelete('{{ enrollment.user.name|escapejs }}', '{{ enrollment.course.name|escapejs }}')"
+                                   class="action delete"
+                                   title="Delete enrollment">
+                                    <i class="fa-solid fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-enrollments-state">
+            <i class="fa-solid fa-clipboard-list"></i>
+            <h4>No enrollments yet</h4>
+            <p>Once students join courses, their enrollment activity will appear here.</p>
+        </div>
+        {% endif %}
+    </section>
+</div>
+
+<script>
+const dateNode = document.getElementById('liveDate');
+if (dateNode) {
+    dateNode.textContent = new Date().toLocaleDateString('en-IN', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+}
+
+const enrollmentSearchInput = document.getElementById('enrollmentSearch');
+const enrollmentFilterButtons = document.querySelectorAll('[data-level-filter]');
+const enrollmentVisibleCount = document.getElementById('enrollmentVisibleCount');
+let activeLevelFilter = 'all';
+
+function applyEnrollmentFilters() {
+    const query = enrollmentSearchInput ? enrollmentSearchInput.value.toLowerCase() : '';
+    let visibleCount = 0;
+
+    document.querySelectorAll('[data-enrollment-row]').forEach((row) => {
+        const text = row.textContent.toLowerCase();
+        const rowLevel = row.dataset.level;
+        const matchesSearch = text.includes(query);
+        const matchesLevel = activeLevelFilter === 'all' || rowLevel === activeLevelFilter;
+        const isVisible = matchesSearch && matchesLevel;
+
+        row.style.display = isVisible ? '' : 'none';
+        if (isVisible) {
+            visibleCount += 1;
+        }
+    });
+
+    if (enrollmentVisibleCount) {
+        enrollmentVisibleCount.textContent = visibleCount;
+    }
+}
+
+if (enrollmentSearchInput) {
+    enrollmentSearchInput.addEventListener('input', applyEnrollmentFilters);
+}
+
+enrollmentFilterButtons.forEach((button) => {
+    button.addEventListener('click', function () {
+        activeLevelFilter = this.dataset.levelFilter;
+        enrollmentFilterButtons.forEach((chip) => chip.classList.remove('active'));
+        this.classList.add('active');
+        applyEnrollmentFilters();
+    });
+});
+
+function confirmDelete(student, course) {
+    return confirm(`Delete enrollment for "${student}" in "${course}"?\n\nThis action cannot be undone.`);
+}
+
+applyEnrollmentFilters();
+</script>
+{% endblock %}

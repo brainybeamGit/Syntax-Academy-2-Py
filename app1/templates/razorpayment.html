@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Secure Payment | Syntax Academy</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Poppins',sans-serif;
+}
+
+body{
+
+height:100vh;
+display:flex;
+align-items:center;
+justify-content:center;
+
+background:
+radial-gradient(circle at top,#1e2646 0%,#12182b 60%);
+
+color:white;
+
+}
+
+/* background glow */
+
+body::before{
+
+content:"";
+position:absolute;
+width:500px;
+height:500px;
+background:#6cf2c2;
+filter:blur(180px);
+opacity:.15;
+top:-120px;
+left:-120px;
+
+}
+
+body::after{
+
+content:"";
+position:absolute;
+width:400px;
+height:400px;
+background:#6aa8ff;
+filter:blur(180px);
+opacity:.15;
+bottom:-120px;
+right:-120px;
+
+}
+
+/* card */
+
+.payment-card{
+
+width:430px;
+background:#12182b;
+border-radius:16px;
+
+padding:40px;
+
+border:1px solid rgba(255,255,255,0.06);
+
+box-shadow:
+0 20px 60px rgba(0,0,0,.6),
+0 0 0 1px rgba(255,255,255,.02);
+
+text-align:center;
+
+position:relative;
+z-index:2;
+
+}
+
+/* logo */
+
+.logo{
+
+font-size:24px;
+font-weight:600;
+color:#6cf2c2;
+margin-bottom:10px;
+
+}
+
+/* title */
+
+.title{
+
+font-size:22px;
+font-weight:500;
+margin-bottom:10px;
+
+}
+
+/* subtitle */
+
+.desc{
+
+font-size:14px;
+color:rgba(255,255,255,.6);
+margin-bottom:25px;
+
+}
+
+/* course info */
+
+.course-box{
+
+background:#0e1425;
+border-radius:10px;
+
+padding:18px;
+margin-bottom:25px;
+
+border:1px solid rgba(255,255,255,.04);
+
+}
+
+/* price */
+
+.price{
+
+font-size:36px;
+font-weight:600;
+
+color:#6cf2c2;
+
+margin-top:6px;
+
+}
+
+/* pay button */
+
+.pay-btn{
+
+width:100%;
+padding:15px;
+
+border:none;
+border-radius:10px;
+
+background:linear-gradient(135deg,#6cf2c2,#6aa8ff);
+
+color:#12182b;
+
+font-size:16px;
+font-weight:600;
+
+cursor:pointer;
+
+transition:.25s;
+
+box-shadow:0 8px 25px rgba(108,242,194,.3);
+
+}
+
+.pay-btn:hover{
+
+transform:translateY(-2px);
+
+box-shadow:0 12px 30px rgba(108,242,194,.45);
+
+}
+
+/* secure text */
+
+.secure{
+
+margin-top:16px;
+font-size:13px;
+
+color:rgba(255,255,255,.5);
+
+}
+
+/* badge row */
+
+.badges{
+
+display:flex;
+justify-content:center;
+gap:12px;
+
+margin-top:15px;
+
+font-size:12px;
+color:rgba(255,255,255,.5);
+
+}
+
+.badges span{
+
+background:#0e1425;
+padding:6px 10px;
+border-radius:6px;
+
+border:1px solid rgba(255,255,255,.05);
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="payment-card">
+
+<div class="logo">
+Syntax Academy
+</div>
+
+<h2 class="title">
+Complete Your Enrollment
+</h2>
+
+<p class="desc">
+Secure payment powered by Razorpay
+</p>
+
+<div class="course-box">
+
+<div>Course Price</div>
+
+<div class="price">
+INR {{ razorpay_amount|floatformat:0|slice:":-2" }}
+</div>
+
+</div>
+
+<button id="payBtn" class="pay-btn">
+Pay & Enroll Now
+</button>
+
+<div class="secure">
+🔒 Secure Checkout • Instant Course Access
+</div>
+
+<div class="badges">
+
+<span>UPI</span>
+<span>Cards</span>
+<span>NetBanking</span>
+
+</div>
+
+</div>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<script>
+
+var options = {
+
+key: "{{ razorpay_merchant_key }}",
+
+amount: "{{ razorpay_amount }}",
+
+currency: "{{ currency }}",
+
+name: "Syntax Academy",
+
+description: "Course Enrollment",
+
+order_id: "{{ razorpay_order_id }}",
+
+callback_url: "{{ callback_url }}",
+
+theme:{
+color:"#6cf2c2"
+}
+
+};
+
+var rzp1 = new Razorpay(options);
+
+document.getElementById("payBtn").onclick = function(e){
+
+rzp1.open();
+e.preventDefault();
+
+}
+
+</script>
+
+</body>
+
+</html>
