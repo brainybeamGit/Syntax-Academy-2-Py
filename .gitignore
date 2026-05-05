@@ -5,9 +5,5 @@ __pycache__/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
-seeds.py
-.env.sample
-db.sqlite3
 media/
-*.sqlite3
 *.log
